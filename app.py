@@ -945,6 +945,11 @@ def _build_signature(slug, ctx, cfg, flags):
             cfg.late_finish_penalty_enabled, cfg.late_finish_weight, cfg.default_agg_mode,
             cfg.default_ces_rho,
             cfg.forecast_mode,
+            # Дисконт и базовый год приведения — реальные параметры математики: их читает
+            # _evaluate_node_finances (f_real) и через него вся ценность/прогноз KPI. Без них
+            # в подписи сдвиг ползунков «Ставка дисконтирования»/«Базовый год» в боковой панели
+            # не пересобирал движок и не влиял на расчёт (менялся лишь предпросмотр во фрагменте).
+            cfg.discount_rate, cfg.base_year,
             flags['use_w_cache'], flags['use_m_cache'], flags['force'])
 
 
@@ -3373,8 +3378,20 @@ def page_mixer():
 
                 if st.button("✅ Применить этот бюджет к модели", use_container_width=True, key="rev_apply"):
                     if engine.apply_target_solution(sol):
+                        # Как и прямой сценарий («Утвердить»), обратное решение ФИКСИРУЕМ в
+                        # базовом плане на диск: без save_baseline деньги работ менялись только
+                        # в памяти и терялись при первой же пересборке движка.
+                        ps.save_baseline(ctx, engine.export_state())
                         st.session_state['rev_sol'] = None
-                        st.success("Бюджет применён. План-график и прогнозы пересчитаны.")
+                        # Деньги нескольких работ изменились — сбрасываем кеши таблиц финансов
+                        # и текущего сценария, чтобы микшер/план-график перечитали новые значения.
+                        for _k in [k for k in st.session_state.keys() if str(k).startswith('finance_profile_')]:
+                            st.session_state.pop(_k, None)
+                        st.session_state['simulation_results'] = None
+                        st.session_state['scenario_params'] = None
+                        st.session_state['ai_reports'] = {}
+                        st.session_state['table_nonce'] = st.session_state.get('table_nonce', 0) + 1
+                        st.success("Бюджет применён и сохранён в базовый план. План-график и прогнозы пересчитаны.")
                         st.rerun()
                     else:
                         st.error("Не удалось применить решение.")
