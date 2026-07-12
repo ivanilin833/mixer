@@ -3424,6 +3424,69 @@ class ProjectMixer:
                     acc[s] += float(amounts.get(s, 0.0) or 0.0)
         return agg
 
+    def explain_parent_distribution(self, entity_id: str, new_finances: dict,
+                                    rho_req: float = 1.0, rho_add: float = 0.0) -> Dict[str, Any]:
+        """НЕРАЗРУШАЮЩЕ показывает, как бюджет РОДИТЕЛЯ распределяется по дочерним работам и как
+        меняется ценность каждого ребёнка. Для родителя «ценность работы» НЕ считается по его
+        собственному бюджету (у родителя local_value = 0) — она складывается из ценностей
+        листьев-потомков, между которыми деньги распределяются по весам. Возвращает по каждому
+        листу F/ценность «было→стало», их суммы и число детей. Для листа — children=[]."""
+        leaves = self._leaf_descendants(entity_id)
+        if not leaves:
+            return {'children': [], 'sumV_before': 0.0, 'sumV_after': 0.0, 'n': 0}
+        snap = {n: {'F': self.G.nodes[n].get('F', 0.0),
+                    'T_start': self.G.nodes[n].get('T_start', ''),
+                    'T_end': self.G.nodes[n].get('T_end', ''),
+                    'local_value': self.G.nodes[n].get('local_value', 0.0),
+                    'finances': copy.deepcopy(self.G.nodes[n].get('finances', {})),
+                    'finances_eff': copy.deepcopy(self.G.nodes[n].get('finances_eff', None)),
+                    'rho_req': self.G.nodes[n].get('rho_req', 1.0),
+                    'rho_add': self.G.nodes[n].get('rho_add', 0.0),
+                    'is_financial': self.G.nodes[n].get('is_financial', False)}
+                for n in self.G.nodes()
+                if str(self.G.nodes[n].get('type', '')).upper() != 'KPI'}
+        try:
+            # «Было» — из того же канонического конвейера, что и old_kpis в mix().
+            self._clear_rollup_sources(entity_id)
+            self._compute_effective_finances()
+            self._recompute_leaf_values()
+            self._recompute_parent_budgets()
+            before = {L: (float(self.G.nodes[L].get('F', 0.0)),
+                          float(self.G.nodes[L].get('local_value', 0.0))) for L in leaves}
+            # «Стало» — применяем правку денег родителя (та же логика, что в mix/commit).
+            self.G.nodes[entity_id]['rho_req'] = rho_req
+            self.G.nodes[entity_id]['rho_add'] = rho_add
+            for L in leaves:
+                self.G.nodes[L]['rho_req'] = rho_req
+                self.G.nodes[L]['rho_add'] = rho_add
+            self.G.nodes[entity_id]['finances'] = copy.deepcopy(new_finances or {})
+            if any(float(v.get(s, 0.0) or 0.0) > 1e-9 for v in (new_finances or {}).values()
+                   if isinstance(v, dict) for s in ('base', 'req_extra', 'add')):
+                self.G.nodes[entity_id]['is_financial'] = True
+            self._clear_rollup_sources(entity_id)
+            self._compute_effective_finances()
+            self._recompute_leaf_values()
+            self._recompute_parent_budgets()
+            rows = []
+            for L in leaves:
+                fb, vb = before[L]
+                fa = float(self.G.nodes[L].get('F', 0.0))
+                va = float(self.G.nodes[L].get('local_value', 0.0))
+                rows.append({'id': L, 'name': str(self.G.nodes[L].get('name', L)),
+                             'F_before': fb, 'F_after': fa, 'V_before': vb, 'V_after': va})
+            rows.sort(key=lambda r: abs(r['V_after'] - r['V_before']), reverse=True)
+            return {'children': rows,
+                    'sumV_before': sum(r['V_before'] for r in rows),
+                    'sumV_after': sum(r['V_after'] for r in rows),
+                    'n': len(rows)}
+        finally:
+            for n, s in snap.items():
+                self.G.nodes[n].update(s)
+            self._compute_effective_finances()
+            self._recompute_leaf_values()
+            self._recompute_parent_budgets()
+            self._propagate_all_kpis()
+
     def _apply_parent_window_to_descendants(self, parent: str, win_old, win_new):
         """РЕАЛИЗОВАНО (авто-балансировка для родителей)."""
         for leaf in self._leaf_descendants(parent):

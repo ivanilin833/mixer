@@ -3086,7 +3086,12 @@ def page_mixer():
                             
                             work_node = engine.G.nodes.get(work_id, {}) if work_id else {}
                             is_ms_w = mc.ProjectMixer._is_milestone_type(work_node.get('type'))
-                            
+                            # Родитель или лист? У РОДИТЕЛЯ другой расчёт: своей ценности от бюджета
+                            # нет (local_value=0), деньги распределяются между детьми.
+                            _kids = [c for c in engine.G.predecessors(work_id)
+                                     if str(engine.G.nodes[c].get('type', '')).upper() != 'KPI'] if work_id else []
+                            is_parent = len(_kids) > 0
+
                             # Достаем заранее рассчитанные РЕАЛЬНЫЕ (с дисконтированием) цифры
                             F_old_real = params.get('F_old_real', 0.0)
                             F_new_real = params.get('F_new_real', 0.0)
@@ -3094,48 +3099,78 @@ def page_mixer():
                             def _val_F(F):
                                 return a * _math.log1p(lam_eff * max(0.0, F))
 
-                            if is_ms_w:
-                                Vw_old = engine._milestone_value(work_id, F_old_real, end_old) if work_id else _val_F(F_old_real)
-                                Vw_new = engine._milestone_value(work_id, F_new_real, end_new) if work_id else _val_F(F_new_real)
-                                time_label = "срок (опоздание даты достижения)"
-                            else:
-                                try:
-                                    d_old = max(1, (datetime.strptime(str(end_old)[:10], "%Y-%m-%d") - datetime.strptime(str(start_old)[:10], "%Y-%m-%d")).days)
-                                    d_new = max(1, (datetime.strptime(str(end_new)[:10], "%Y-%m-%d") - datetime.strptime(str(start_new)[:10], "%Y-%m-%d")).days)
-                                except Exception:
-                                    d_old = d_new = 1
-                                T_opt = safe_float(work_node.get('T_opt', d_old)) or d_old
-                                late_old = engine._late_days(work_node, end_old) if work_id else 0
-                                late_new = engine._late_days(work_node, end_new) if work_id else 0
-                                Vw_old = engine._calculate_local_value(F_old_real, d_old, T_opt=T_opt, late_days=late_old)
-                                Vw_new = engine._calculate_local_value(F_new_real, d_new, T_opt=T_opt, late_days=late_new)
-                                time_label = "срок (отклонение длительности)"
-                            
-                            val_F_old, val_F_new = _val_F(F_old_real), _val_F(F_new_real)
-                            val_T_old, val_T_new = Vw_old - val_F_old, Vw_new - val_F_new
+                            # Длительность (для строки «Срок» в п.1 и для листовой формулы в п.2).
+                            try:
+                                d_old = max(1, (datetime.strptime(str(end_old)[:10], "%Y-%m-%d") - datetime.strptime(str(start_old)[:10], "%Y-%m-%d")).days)
+                                d_new = max(1, (datetime.strptime(str(end_new)[:10], "%Y-%m-%d") - datetime.strptime(str(start_new)[:10], "%Y-%m-%d")).days)
+                            except Exception:
+                                d_old = d_new = 1
+
+                            if not is_parent:
+                                if is_ms_w:
+                                    Vw_old = engine._milestone_value(work_id, F_old_real, end_old) if work_id else _val_F(F_old_real)
+                                    Vw_new = engine._milestone_value(work_id, F_new_real, end_new) if work_id else _val_F(F_new_real)
+                                    time_label = "срок (опоздание даты достижения)"
+                                else:
+                                    T_opt = safe_float(work_node.get('T_opt', d_old)) or d_old
+                                    late_old = engine._late_days(work_node, end_old) if work_id else 0
+                                    late_new = engine._late_days(work_node, end_new) if work_id else 0
+                                    Vw_old = engine._calculate_local_value(F_old_real, d_old, T_opt=T_opt, late_days=late_old)
+                                    Vw_new = engine._calculate_local_value(F_new_real, d_new, T_opt=T_opt, late_days=late_new)
+                                    time_label = "срок (отклонение длительности)"
+                                val_F_old, val_F_new = _val_F(F_old_real), _val_F(F_new_real)
+                                val_T_old, val_T_new = Vw_old - val_F_old, Vw_new - val_F_new
 
                             Vk_old = safe_float(s.get('old')); Vk_new = safe_float(s.get('new'))
                             m_raw = (Vk_new / Vk_old) if Vk_old > 0 else 1.0
 
-                            st.markdown(f"**1) Что поменяли** — работа «{work_nm}»:")
+                            _kind = "родительская задача" if is_parent else ("веха" if is_ms_w else "работа")
+                            st.markdown(f"**1) Что поменяли** — {_kind} «{work_nm}»:")
                             st.markdown(f"- Бюджет (номинал): {fmt(F_old_nominal)} → {fmt(F_new_nominal)} {_u}")
-                            st.markdown(f"- Бюджет (реальный, дисконт. — идёт в ценность): "
+                            _real_note = "суммарный по детям" if is_parent else "идёт в ценность"
+                            st.markdown(f"- Бюджет (реальный, дисконт. — {_real_note}): "
                                         f"{fmt(F_old_real)} → {fmt(F_new_real)} {_u}")
                             if not is_ms_w:
                                 st.markdown(f"- Срок (длительность): {d_old} дн. → {d_new} дн.")
                             else:
                                 st.markdown(f"- Дата достижения: {fmt_date(end_old)} → {fmt_date(end_new)}")
-                            st.markdown("**2) Ценность работы** (вклад в результат) = бюджетный член "
-                                        f"+ временной член ({time_label}):")
-                            st.latex(r"V_{\text{раб}} = \underbrace{\alpha\,\ln(1+\lambda_{\text{эфф}}\cdot F_{реальн.})}_{\text{бюджет}} "
-                                     r"+ \underbrace{\beta\cdot\sigma(\dots)}_{\text{срок}}")
-                            st.latex(rf"\text{{было}}:\ \underbrace{{{val_F_old:.3f}}}_{{\text{{бюджет}}}} + "
-                                     rf"\underbrace{{{val_T_old:.3f}}}_{{\text{{срок}}}} = {Vw_old:.3f}")
-                            st.latex(rf"\text{{стало}}:\ \underbrace{{{val_F_new:.3f}}}_{{\text{{бюджет}}}} + "
-                                     rf"\underbrace{{{val_T_new:.3f}}}_{{\text{{срок}}}} = {Vw_new:.3f}")
-                            if abs(val_T_new - val_T_old) > 1e-6:
-                                st.caption(f"Временной член изменился ({val_T_old:.3f} → {val_T_new:.3f}) — "
-                                           f"это и есть эффект от сдвига срока.")
+
+                            if is_parent:
+                                dist = engine.explain_parent_distribution(
+                                    work_id, params.get('new_finances') or {},
+                                    float(params.get('rho_req', 1.0)), float(params.get('rho_add', 0.0)))
+                                st.markdown(f"**2) Расчёт для РОДИТЕЛЯ** — своей ценности от бюджета у родителя нет. "
+                                            f"Его деньги распределяются между **{dist['n']}** дочерними работами по весам влияния; "
+                                            f"ценность считается по КАЖДОМУ ребёнку и суммируется:")
+                                st.latex(r"V_{\text{ребёнка}} = \alpha\ln(1+\lambda_{\text{эфф}} F_{реальн.}) + \beta\sigma(\dots)"
+                                         r",\qquad V_{\text{родителя}} = \sum_{\text{дети}} V_{\text{ребёнка}}")
+                                st.latex(rf"\sum V_{{\text{{дети}}}}:\ {dist['sumV_before']:.3f}\ \rightarrow\ {dist['sumV_after']:.3f}")
+                                _ch = [c for c in dist['children']
+                                       if abs(c['V_after'] - c['V_before']) > 1e-6 or abs(c['F_after'] - c['F_before']) > 1e-6]
+                                if _ch:
+                                    st.caption("Дочерние работы, у которых изменились деньги/ценность:")
+                                    st.dataframe(pd.DataFrame([{
+                                        '№': c['id'], 'Работа': c['name'][:44],
+                                        f'Бюджет было, {_u}': round(c['F_before'], 2),
+                                        f'Бюджет стало, {_u}': round(c['F_after'], 2),
+                                        'V было': round(c['V_before'], 3), 'V стало': round(c['V_after'], 3),
+                                    } for c in _ch[:12]]), hide_index=True, use_container_width=True)
+                                else:
+                                    st.caption("Суммарный бюджет детей не изменился — сдвинулось только его "
+                                               "распределение по годам/работам (эффект виден в дисконтированной "
+                                               "ценности детей и в показателе).")
+                            else:
+                                st.markdown("**2) Ценность работы** (вклад в результат) = бюджетный член "
+                                            f"+ временной член ({time_label}):")
+                                st.latex(r"V_{\text{раб}} = \underbrace{\alpha\,\ln(1+\lambda_{\text{эфф}}\cdot F_{реальн.})}_{\text{бюджет}} "
+                                         r"+ \underbrace{\beta\cdot\sigma(\dots)}_{\text{срок}}")
+                                st.latex(rf"\text{{было}}:\ \underbrace{{{val_F_old:.3f}}}_{{\text{{бюджет}}}} + "
+                                         rf"\underbrace{{{val_T_old:.3f}}}_{{\text{{срок}}}} = {Vw_old:.3f}")
+                                st.latex(rf"\text{{стало}}:\ \underbrace{{{val_F_new:.3f}}}_{{\text{{бюджет}}}} + "
+                                         rf"\underbrace{{{val_T_new:.3f}}}_{{\text{{срок}}}} = {Vw_new:.3f}")
+                                if abs(val_T_new - val_T_old) > 1e-6:
+                                    st.caption(f"Временной член изменился ({val_T_old:.3f} → {val_T_new:.3f}) — "
+                                               f"это и есть эффект от сдвига срока.")
                             st.markdown(f"**3) Ценность показателя** после прохода по графу "
                                         f"(агрегатор CES, влияние работы ≈ {infl_pct:.0f}%):")
                             st.latex(rf"V_{{\text{{KPI}}}}:\ {Vk_old:.3f}\ \rightarrow\ {Vk_new:.3f}")
