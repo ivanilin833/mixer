@@ -1992,9 +1992,11 @@ def render_model_tab(ctx, factor, budget_unit_name):
 def page_mixer():
     st.markdown("""
     <style>
-    /* Слайдеры пульта — компактные горизонтальные, подпись прячем (label_visibility=collapsed) */
-    div[data-testid="stSlider"] > label { display: none !important; }
-    div[data-testid="stSlider"] { margin: 15px auto 5px auto; width: 90%; }
+    /* Слайдеры пульта (каналы M-Vave) прячут свою подпись сами через label_visibility=
+       "collapsed" в draw_channel. Раньше здесь стояло глобальное правило, скрывавшее ПОДПИСИ
+       ВСЕХ ползунков на странице (боковая панель «Допущения сценария», вкладка «Модель»,
+       каналы 7/8 переноса) — из-за него ползунки были без названий. Правило убрано. */
+    div[data-testid="stSlider"] { margin: 12px auto 6px auto; }
 
     /* Дизайн физической дорожки пульта M-Vave — адаптивные цвета */
     .mixer-channel {
