@@ -3689,6 +3689,7 @@ def page_mixer():
                 'Вес': round(float(r['Вес']), 4),
                 'Влияние': (round(float(r['Влияние']) * 100.0, 1) if r['Влияние'] is not None else None),
                 'Тип': r['Тип'],
+                'Комментарий ИИ': r.get('Обоснование', '') or '',
             } for r in sub]
             pdf = pd.DataFrame(data)
 
@@ -3705,17 +3706,24 @@ def page_mixer():
                                                              help="Доля просадки этого KPI при обнулении работы."),
                     'Тип': st.column_config.SelectboxColumn("Тип связи", options=type_labels, width="small",
                                                             help="Форма влияния вклада ребёнка на родителя."),
+                    # Обоснование веса, предложенное ИИ при построении матрицы. Редактируемое —
+                    # экспертную правку сохраняем вместе с весом/типом.
+                    'Комментарий ИИ': st.column_config.TextColumn("Комментарий ИИ", width="large",
+                                                                  help="Обоснование связи, предложенное ИИ (можно уточнить вручную)."),
                 },
                 key=f"weights_editor_{sel_kid}",
             )
             st.caption(f"Показатель: «{sel_name}» · связей: {len(sub)}. "
-                       "«Вес» — вход (редактируется), «Влияние» — измеряемый выход (%). "
+                       "«Вес» — вход (редактируется), «Влияние» — измеряемый выход (%), "
+                       "«Комментарий ИИ» — обоснование связи. "
                        "Чтобы увидеть влияние тех же связей на другой KPI — переключите показатель выше.")
             if st.button("Применить веса и пересчитать", type="primary"):
-                for r, new_w, new_t in zip(sub, edited['Вес'].tolist(), edited['Тип'].tolist()):
+                _com = edited['Комментарий ИИ'].tolist() if 'Комментарий ИИ' in edited else [None] * len(sub)
+                for r, new_w, new_t, new_c in zip(sub, edited['Вес'].tolist(), edited['Тип'].tolist(), _com):
                     rt = label_to_key.get(str(new_t), 'linear')
                     engine.set_weight(r['kpi_id'], r['source_id'], r['target_id'],
-                                      safe_float(new_w), relation_type=rt)
+                                      safe_float(new_w), relation_type=rt,
+                                      rationale=(None if new_c is None else str(new_c)))
                 engine.recalculate()
                 st.session_state.simulation_results = None
                 st.session_state.ai_reports = {}

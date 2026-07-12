@@ -441,7 +441,10 @@ class DataLoaderOrchestrator:
                     col_l1 = str(h1.iloc[c]).lower()
                     col_l2 = str(h2.iloc[c]).lower()
                     
-                    year_match = re.search(r'(20\d{2})\s*год', col_l0)
+                    # Год ищем как «20xx» в любом виде («2026 год», «2026», «на 2026 г.») —
+                    # согласовано с парсером показателей (_col_year). Прежнее требование слова
+                    # «год» теряло деньги, если в шапке был только номер года.
+                    year_match = re.search(r'(20\d{2})', col_l0)
                     if year_match:
                         year = int(year_match.group(1))
                         if year not in fin_profile:
@@ -460,6 +463,14 @@ class DataLoaderOrchestrator:
                                 fin_profile[year]['req_total'] = val
                         elif 'дополнительная' in col_l1 or 'доп' in col_l1:
                             fin_profile[year]['add'] = val
+
+                # Движок работает с ПОТРЕБНОСТЬЮ СВЕРХ БАЗЫ (req_extra). Если в файле есть только
+                # «Потребный, ВСЕГО» (req_total) без колонки «сверх базового», выводим сверх =
+                # max(0, всего − база). Иначе вся потребность (заданная как «всего») игнорировалась
+                # — в матрице финансов показывался 0, а бюджет/расчёты занижались.
+                for _yr, _p in fin_profile.items():
+                    if _p.get('req_extra', 0.0) <= 1e-9 and _p.get('req_total', 0.0) > 1e-9:
+                        _p['req_extra'] = max(0.0, _p['req_total'] - _p.get('base', 0.0))
 
                 mapped[raw_id] = {'name': task_name, 'profile': fin_profile}
             return {'mapped': mapped}
