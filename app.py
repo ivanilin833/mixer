@@ -1322,11 +1322,11 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
     new_start = cur_start + timedelta(days=shift_m * 30)
     slider_dur = float(b_dur)
 
-    # Восстанавливаем настоящий старый бюджет (включая агрегацию для родителей)
-    old_fin_dict = {}
-    for r in _entity_data:
-        y_str = str(r['Год'])
-        old_fin_dict[y_str] = {'base': _fnum(r.get('_orig_base')), 'req_extra': _fnum(r.get('_orig_req')), 'add': _fnum(r.get('_orig_add'))}
+    # «Старый» бюджет для авто-балансировки — из ДВИЖКА (утверждённое состояние узла), а не из
+    # session _orig_* (их затирает ручная правка ячейки, и тогда авто-баланс не срабатывал при
+    # переносе денег в поздний год — реальный бюджет падает из-за дисконта, а сравнение «было
+    # равно стало» этого не видело, и срок не продлевался).
+    old_fin_dict = engine.display_finances(selected_entity)
 
     _, F_new_real, _ = engine._evaluate_node_finances(updated_fin_dict, rho_req=rho_req, rho_add=rho_add)
     _, F_old_real, _ = engine._evaluate_node_finances(old_fin_dict, rho_req=def_rho_req/100.0, rho_add=def_rho_add/100.0)
@@ -2320,24 +2320,9 @@ def page_mixer():
         type_icon = {'веха': '◆', 'мероприятие': '▸', 'подзадача': '▪', 'задача': '■'}
 
         def _display_finances(node_id):
-            """Финансы узла ДЛЯ ОТОБРАЖЕНИЯ: у листа — эффективные (свои + цель родителей);
-            у родителя — агрегат ПО ГОДАМ/СТАТУСАМ эффективных финансов его листьев (свой
-            источник родителя может быть пуст/очищен после правок). Единый источник для
-            таблицы и микшера, чтобы цифры не расходились."""
-            attr_ = engine.G.nodes[node_id]
-            is_leaf_ = engine.G.in_degree(node_id) == 0
-            if is_leaf_:
-                return mc.ProjectMixer._parse_finances(
-                    attr_.get('finances_eff', attr_.get('finances', {})))
-            agg_ = {}
-            for lf in engine._leaf_descendants(node_id):
-                lfin = mc.ProjectMixer._parse_finances(
-                    engine.G.nodes[lf].get('finances_eff', engine.G.nodes[lf].get('finances', {})))
-                for y_str, amounts in lfin.items():
-                    acc = agg_.setdefault(y_str, {'base': 0.0, 'req_extra': 0.0, 'add': 0.0})
-                    for st_ in ('base', 'req_extra', 'add'):
-                        acc[st_] += float(amounts.get(st_, 0.0) or 0.0)
-            return agg_
+            """Финансы узла ДЛЯ ОТОБРАЖЕНИЯ (делегирует в движок — единый источник «текущего»
+            состояния для таблицы, живого прогноза и сравнения «было/стало»)."""
+            return engine.display_finances(node_id)
 
         all_finance_years = set()
         for n, attr in engine.G.nodes(data=True):
@@ -2713,20 +2698,18 @@ def page_mixer():
                     c_start = cur_start + timedelta(days=btn_shift_m * 30)
                     slider_dur_btn = float(b_dur)
                     
-                    # Восстанавливаем настоящий старый бюджет (считаем и реальный, и номинал!)
-                    old_fin_dict_btn = {}
-                    old_F_nominal_btn = 0.0
+                    # «Было» берём из ДВИЖКА (утверждённое состояние узла), а НЕ из session
+                    # _orig_*: ручная правка ячейки (on_fin_edit) затирает _orig текущим значением,
+                    # из-за чего «было» совпадало со «стало» — бюджет/ценность показывались без
+                    # изменений, хотя KPI (по реальному дисконтированному бюджету) менялся. Это и
+                    # была «странность» при переносе денег между годами.
                     old_rho_req = float(node.get('rho_req', 1.0))
                     old_rho_add = float(node.get('rho_add', 0.0))
-
-                    for r in st.session_state[f"finance_profile_{selected_entity}"]:
-                        y_str = str(r['Год'])
-                        o_b = _fnum(r.get('_orig_base'))
-                        o_r = _fnum(r.get('_orig_req'))
-                        o_a = _fnum(r.get('_orig_add'))
-                        old_fin_dict_btn[y_str] = {'base': o_b, 'req_extra': o_r, 'add': o_a}
-                        # Честно складываем старый номинал из таблицы!
-                        old_F_nominal_btn += o_b + (o_r * old_rho_req) + (o_a * old_rho_add)
+                    old_fin_dict_btn = engine.display_finances(selected_entity)
+                    old_F_nominal_btn = 0.0
+                    for _y, _v in old_fin_dict_btn.items():
+                        old_F_nominal_btn += (_fnum(_v.get('base')) + _fnum(_v.get('req_extra')) * old_rho_req
+                                              + _fnum(_v.get('add')) * old_rho_add)
                     
                     _, F_new_real_btn, _ = engine._evaluate_node_finances(updated_fin_dict, rho_req=rho_req, rho_add=rho_add)
                     _, F_old_real_btn, _ = engine._evaluate_node_finances(old_fin_dict_btn, rho_req=old_rho_req, rho_add=old_rho_add)

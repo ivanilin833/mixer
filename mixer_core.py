@@ -3352,6 +3352,25 @@ class ProjectMixer:
         return [n for n in nx.ancestors(self.G, node)
                 if str(self.G.nodes[n].get('type', '')).upper() != 'KPI' and self.G.in_degree(n) == 0]
 
+    def display_finances(self, node_id: str) -> Dict[str, Dict[str, float]]:
+        """ЭФФЕКТИВНЫЕ финансы узла по годам {год: {base, req_extra, add}} — то, что реально
+        видит пользователь: у листа его собственные+распределённые деньги; у родителя — сумма
+        по листьям поддерева. ЕДИНЫЙ источник «текущего» состояния для таблицы, живого прогноза
+        и сравнения «было/стало» (нельзя брать из session_state — там _orig затирается ручной
+        правкой ячейки, и «было» ошибочно совпадало со «стало»)."""
+        attr = self.G.nodes.get(node_id, {})
+        if self.G.in_degree(node_id) == 0:
+            return self._parse_finances(attr.get('finances_eff', attr.get('finances', {})))
+        agg: Dict[str, Dict[str, float]] = {}
+        for lf in self._leaf_descendants(node_id):
+            lfin = self._parse_finances(self.G.nodes[lf].get('finances_eff',
+                                                             self.G.nodes[lf].get('finances', {})))
+            for y_str, amounts in lfin.items():
+                acc = agg.setdefault(str(y_str), {'base': 0.0, 'req_extra': 0.0, 'add': 0.0})
+                for s in ('base', 'req_extra', 'add'):
+                    acc[s] += float(amounts.get(s, 0.0) or 0.0)
+        return agg
+
     def _apply_parent_window_to_descendants(self, parent: str, win_old, win_new):
         """РЕАЛИЗОВАНО (авто-балансировка для родителей)."""
         for leaf in self._leaf_descendants(parent):
