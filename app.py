@@ -2842,6 +2842,43 @@ def page_mixer():
                 st.caption("Здесь появится прогноз показателей, как только вы выберете задачу "
                            "и примените сценарий.")
             else:
+                # ПРЕДПРОСМОТР ДЛЯ РОДИТЕЛЯ: деньги родителя распределяются по детям, и их сроки
+                # сдвигаются (деньги позднего года → кассовый разрыв). Плановая таблица покажет это
+                # только ПОСЛЕ «Утвердить», поэтому здесь даём явный предпросмотр «станет».
+                _scp = st.session_state.get('scenario_params') or {}
+                _kids_real = [c for c in engine.G.predecessors(selected_entity)
+                              if str(engine.G.nodes[c].get('type', '')).upper() != 'KPI']
+                if _kids_real and _scp.get('entity') == selected_entity and _scp.get('new_finances') is not None:
+                    dist = engine.explain_parent_distribution(
+                        selected_entity, _scp.get('new_finances') or {},
+                        float(_scp.get('rho_req', 1.0)), float(_scp.get('rho_add', 0.0)))
+
+                    def _fin_years(fin):
+                        parts = []
+                        for y, v in sorted(fin.items()):
+                            tot = sum(float(v.get(s, 0.0) or 0.0) for s in ('base', 'req_extra', 'add'))
+                            if tot > 1e-9:
+                                parts.append(f"{y}: {fmt(tot)}")
+                        return ", ".join(parts) or "—"
+
+                    _chg = [c for c in dist['children']
+                            if c['end_after'] != c['end_before']
+                            or _fin_years(c['fin_before']) != _fin_years(c['fin_after'])]
+                    with st.expander(f"👶 Дочерние работы: деньги и сроки — станет после «Утвердить» "
+                                     f"({len(_chg)} измен.)", expanded=bool(_chg)):
+                        if not _chg:
+                            st.caption("У дочерних работ деньги и сроки не меняются.")
+                        else:
+                            st.dataframe(pd.DataFrame([{
+                                '№': c['id'], 'Работа': c['name'][:38],
+                                'Деньги было': _fin_years(c['fin_before']),
+                                'Деньги станет': _fin_years(c['fin_after']),
+                                'Срок был': fmt_date(c['end_before']),
+                                'Срок станет': fmt_date(c['end_after']),
+                            } for c in _chg[:20]]), hide_index=True, use_container_width=True)
+                            st.caption("Это предпросмотр. Значения запишутся в план-график после кнопки "
+                                       "«✅ Утвердить сценарий».")
+
                 affected_set = set()
                 if sim:
                     affected_set = {k for k, v in sim.items() if abs(v.get('pct_change', 0)) > CHANGE_THRESHOLD}

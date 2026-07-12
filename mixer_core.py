@@ -3453,6 +3453,8 @@ class ProjectMixer:
             self._recompute_parent_budgets()
             before = {L: (float(self.G.nodes[L].get('F', 0.0)),
                           float(self.G.nodes[L].get('local_value', 0.0))) for L in leaves}
+            end_before = {L: self.G.nodes[L].get('T_end') for L in leaves}
+            fin_before = {L: self.display_finances(L) for L in leaves}
             # «Стало» — применяем правку денег родителя (та же логика, что в mix/commit).
             self.G.nodes[entity_id]['rho_req'] = rho_req
             self.G.nodes[entity_id]['rho_add'] = rho_add
@@ -3473,8 +3475,11 @@ class ProjectMixer:
                 fa = float(self.G.nodes[L].get('F', 0.0))
                 va = float(self.G.nodes[L].get('local_value', 0.0))
                 rows.append({'id': L, 'name': str(self.G.nodes[L].get('name', L)),
-                             'F_before': fb, 'F_after': fa, 'V_before': vb, 'V_after': va})
-            rows.sort(key=lambda r: abs(r['V_after'] - r['V_before']), reverse=True)
+                             'F_before': fb, 'F_after': fa, 'V_before': vb, 'V_after': va,
+                             'end_before': end_before.get(L), 'end_after': self.G.nodes[L].get('T_end'),
+                             'fin_before': fin_before.get(L, {}), 'fin_after': self.display_finances(L)})
+            rows.sort(key=lambda r: (abs(r['V_after'] - r['V_before']),
+                                     1 if r['end_after'] != r['end_before'] else 0), reverse=True)
             return {'children': rows,
                     'sumV_before': sum(r['V_before'] for r in rows),
                     'sumV_after': sum(r['V_after'] for r in rows),
