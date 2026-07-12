@@ -1475,6 +1475,21 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
             fig_kpi = make_subplots(rows=n_rows, cols=1, specs=[[{"type": "indicator"}]] * n_rows, vertical_spacing=0.1)
 
             if not infl:
+                # У задачи нет связей с KPI — оцениваем изменение её СОБСТВЕННОЙ ценности той же
+                # формулой, что и ядро (_recompute_leaf_values): бюджетный + временной член из
+                # старого/нового реального (дисконтированного) бюджета и длительности. Раньше здесь
+                # использовались неопределённые V_val/V_orig — фрагment падал с NameError на любой
+                # работе без показателей.
+                try:
+                    T_opt = int(node.get('T_opt', b_dur) or b_dur)
+                    if is_ms:
+                        V_orig = engine._milestone_value(selected_entity, F_old_real, cur_end.strftime("%Y-%m-%d"))
+                        V_val = engine._milestone_value(selected_entity, F_new_real, new_end.strftime("%Y-%m-%d"))
+                    else:
+                        V_orig = engine._calculate_local_value(F_old_real, max(1, int(b_dur)), T_opt=T_opt)
+                        V_val = engine._calculate_local_value(F_new_real, max(1, int(final_dur)), T_opt=T_opt)
+                except Exception:
+                    V_orig = V_val = 0.0
                 impact = ((V_val - V_orig) / V_orig) * 100.0 if V_orig > 0 else 0.0
                 g_color = "#36D399" if impact >= 0 else "#FF6B81" if _dk else ("#0E8F5E" if impact >= 0 else "#D8425A")
                 fig_kpi.add_trace(go.Indicator(
