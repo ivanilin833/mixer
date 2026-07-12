@@ -1212,7 +1212,10 @@ def _apply_transfer_deltas(selected_entity, active_years, state_key):
 # === ГЛОБАЛЬНЫЙ ФРАГМЕНТ ПУЛЬТА M-Vave (изолированный, живёт на своём таймере) ===
 # УЛУЧШЕНИЕ: автообновление каждые 0.15с включается только при наличии MIDI-пакетов —
 # без пульта нет смысла крутить rerun-цикл и жечь CPU.
-@st.fragment(run_every="0.25s" if MIDI_AVAILABLE else None)
+# Опрос пульта: 0.15 с (было 0.25) — движения фейдеров/крутилок отражаются заметно быстрее.
+# Безопасно, потому что тяжёлый engine.mix() теперь мемоизируется и на «холостых» опросах,
+# когда входы не изменились, не пересчитывается (см. кеш _frag_simcache внутри фрагмента).
+@st.fragment(run_every="0.15s" if MIDI_AVAILABLE else None)
 def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rho_add, cur_start, cur_end, is_ms, active_years, budget_unit, infl, auto_balance, disc_rate=0.06, disc_base_year=2026):
     import time
     from plotly.subplots import make_subplots
@@ -1345,12 +1348,30 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
         new_start = new_end
         
     # === 3. ЖИВОЙ ПРОГНОЗ ЧЕРЕЗ ЯДРО (ДЕНЬГИ + СРОКИ) ===
-    sim_res = engine.mix(
-        selected_entity, new_F_nominal, 
-        new_start.strftime("%Y-%m-%d"), new_end.strftime("%Y-%m-%d"), 
-        new_finances=updated_fin_dict, rho_req=rho_req, rho_add=rho_add
-    )
-    
+    # МЕМОИЗАЦИЯ: engine.mix() — самый дорогой шаг (снимает снапшот ВСЕХ узлов с deepcopy
+    # финансов, чистит ролл-апы, пересчитывает граф). Фрагмент перерисовывается по таймеру
+    # run_every и при любом изменении виджета, поэтому без кеша mix() гонялся вхолостую по
+    # много раз в секунду — отсюда «задержка» живого прогноза. Считаем заново ТОЛЬКО когда
+    # реально изменились входы (деньги/сроки/вероятности выбранной задачи).
+    _ns, _ne = new_start.strftime("%Y-%m-%d"), new_end.strftime("%Y-%m-%d")
+    # В подпись входят и УТВЕРЖДЁННОЕ состояние узла (даты + текущие деньги из движка): после
+    # commit оно меняется — кеш обязан инвалидироваться, даже если входы пульта совпали.
+    _sim_sig = (selected_entity, round(float(new_F_nominal), 3), _ns, _ne,
+                round(float(rho_req), 4), round(float(rho_add), 4),
+                json.dumps(updated_fin_dict, sort_keys=True),
+                cur_start.strftime("%Y-%m-%d"), cur_end.strftime("%Y-%m-%d"),
+                json.dumps(engine.display_finances(selected_entity), sort_keys=True))
+    _sim_ck = f"_frag_simcache_{selected_entity}"
+    _cached = st.session_state.get(_sim_ck)
+    if _cached and _cached.get('sig') == _sim_sig:
+        sim_res = _cached['res']
+    else:
+        sim_res = engine.mix(
+            selected_entity, new_F_nominal, _ns, _ne,
+            new_finances=updated_fin_dict, rho_req=rho_req, rho_add=rho_add
+        )
+        st.session_state[_sim_ck] = {'sig': _sim_sig, 'res': sim_res}
+
 
     # === 4. ПОДГОТОВКА ДАННЫХ ДЛЯ ОТРИСОВКИ ===
     _live_sim = {}

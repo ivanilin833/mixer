@@ -3177,15 +3177,29 @@ class ProjectMixer:
             self._propagate_all_kpis()
 
     def apply_target_solution(self, sol: Dict[str, Any]) -> bool:
-        """Применяет найденный обратным расчётом план: записывает деньги работам и пересчитывает."""
+        """Применяет найденный обратным расчётом план: масштабирует деньги работ И ПРОЕЦИРУЕТ
+        полученный рост ценности в квартальный/годовой ПРОГНОЗ показателей.
+
+        Раньше метод лишь масштабировал деньги и звал _apply_cashgap_baseline_dip(), который
+        пересчитывает прогноз ТОЛЬКО от плана с учётом кассовых провалов — то есть возвращал
+        прогноз к плану, игнорируя эффект добавленных денег. Из-за этого «применить бюджет»
+        внешне ничего не меняло: обратный расчёт обещал прогноз = цель, а после применения
+        квартал оставался на плане. Теперь эффект денег проецируется тем же зональным правилом,
+        что и в прямом сценарии (эффект — с квартала завершения работы)."""
         if not sol or not sol.get('feasible') or not sol.get('per_work'):
             return False
         k = float(sol.get('scale', 1.0))
         ids = [w['id'] for w in sol['per_work']]
         if not ids:
             return False
+        # 1) Каноническая база: фиксируем ценности KPI ДО правки денег (тем же конвейером).
         self._clear_rollup_sources(ids[0])
         self._compute_effective_finances()
+        self._recompute_leaf_values()
+        self._recompute_parent_budgets()
+        self._propagate_all_kpis()
+        old_kpis = {kpi: self._kpi_value(kpi) for kpi in self.kpi_ids}
+        # 2) Масштабируем деньги выбранных работ.
         for L in ids:
             fin = self._parse_finances(self.G.nodes[L].get('finances_eff',
                                                            self.G.nodes[L].get('finances', {})))
@@ -3197,7 +3211,35 @@ class ProjectMixer:
         self._recompute_leaf_values()
         self._recompute_parent_budgets()
         self._propagate_all_kpis()
+        # 3) Базовый провал от кассовых разрывов (если сроки сдвинулись из-за поздних денег).
         self._apply_cashgap_baseline_dip()
+        # 4) ПРОЕКЦИЯ ЭФФЕКТА ДЕНЕГ В ПРОГНОЗ каждого затронутого KPI: forecast = план × m,
+        #    m = калибр.(V_нов/V_стар), эффект — с квартала завершения изменённых работ.
+        changed_ends = [self.G.nodes[L].get('T_end') for L in ids if L in self.G.nodes]
+        changed_ends = [e for e in changed_ends if e]
+        for kpi in self.kpi_ids:
+            old_v = old_kpis.get(kpi, 0.0)
+            new_v = self._kpi_value(kpi)
+            m = self._calibrate_m(kpi, (new_v / old_v) if old_v > 1e-9 else 1.0)
+            if abs(m - 1.0) < 1e-9:
+                continue
+            # доля влияния изменённых работ на этот KPI (для средней зоны «ждали — задержано»)
+            share = 0.0
+            for L in ids:
+                if kpi in self.get_node_kpis(L):
+                    share = max(share, self.kpi_influence(L, kpi))
+            win = (min(changed_ends), max(changed_ends)) if changed_ends else \
+                  (self.G.nodes[kpi].get('T_start'), self.G.nodes[kpi].get('T_end'))
+            periods_out, annual = self.project_periods(win, win, kpi, m, share, children_ends=changed_ends)
+            if periods_out:
+                for p in periods_out:
+                    p['forecast'] = self._clamp_kpi_forecast(kpi, p.get('forecast', 0.0))
+                    p['deviation'] = round(p['forecast'] - float(p.get('plan', 0.0)), 4)
+                self.G.nodes[kpi]['periods'] = json.dumps(periods_out, ensure_ascii=False)
+            if annual:
+                for _y in annual:
+                    annual[_y]['forecast'] = self._clamp_kpi_forecast(kpi, annual[_y].get('forecast', 0.0))
+                self.G.nodes[kpi]['annual'] = json.dumps({str(y): v for y, v in annual.items()}, ensure_ascii=False)
         return True
 
     # ----- Аналитика: чувствительность и оптимизация бюджета -----
