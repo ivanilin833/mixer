@@ -2407,12 +2407,10 @@ class ProjectMixer:
             fin_desc = [l for l in desc if self.G.nodes[l].get('is_financial')]
             if not fin_desc:
                 fin_desc = desc  # в поддереве нет ни одной финансовой — фолбэк, чтобы деньги не пропали
+            # Весовые доли листьев поддерева; перенормировка на активных в конкретном году
+            # финансовых листьях выполняется ниже, внутри годового цикла (wshare_active).
             wshare_all = self._subtree_leaf_weight_shares(nid, desc)
-            # перенормируем веса ТОЛЬКО среди финансовых листьев (Σ=1 по ним)
-            _ws = {l: wshare_all.get(l, 0.0) for l in fin_desc}
-            _s = sum(_ws.values())
-            wshare_all = self._subtree_leaf_weight_shares(nid, desc)
-            
+
             for y_str, amounts in fin.items():
                 if not isinstance(amounts, dict):
                     continue
@@ -2706,8 +2704,23 @@ class ProjectMixer:
                     'Q4': a.get('Q4'), 'Year': a.get('Year'),
                 }
             else:
+                fin = a.get('finances')
+                if isinstance(fin, str):
+                    try:
+                        fin = json.loads(fin)
+                    except Exception:
+                        fin = {}
                 tasks[n] = {'F': a.get('F'), 'T_start': a.get('T_start'),
-                            'T_end': a.get('T_end'), 'T_opt': a.get('T_opt')}
+                            'T_end': a.get('T_end'), 'T_opt': a.get('T_opt'),
+                            'T_plan_end': a.get('T_plan_end'),
+                            # ИСТОЧНИК денег узла — обязателен в снапшоте: без него утверждённый
+                            # перенос/ввод средств (base↔потребность, между годами) не переживал
+                            # пересборку движка и откатывался к значениям из Excel. Риск-веса
+                            # rho_req/rho_add и флаг финансовой вехи тоже относятся к плану.
+                            'finances': fin,
+                            'is_financial': bool(a.get('is_financial', False)),
+                            'rho_req': a.get('rho_req', 1.0),
+                            'rho_add': a.get('rho_add', 0.0)}
         return {'version': 1, 'tasks': tasks, 'kpis': kpis}
 
     def apply_state(self, state: Optional[Dict[str, Any]]):
@@ -2720,17 +2733,30 @@ class ProjectMixer:
         for n, vals in (state.get('tasks') or {}).items():
             if n in self.G.nodes and str(self.G.nodes[n].get('type', '')).upper() != 'KPI':
                 node = self.G.nodes[n]
-                for k in ('F', 'T_start', 'T_end', 'T_opt'):
+                for k in ('F', 'T_start', 'T_end', 'T_opt', 'T_plan_end', 'rho_req', 'rho_add'):
                     if vals.get(k) is not None:
                         node[k] = vals[k]
+                # Источник денег (если сохранён — новые снапшоты). Старые снапшоты его не
+                # содержат: тогда оставляем финансы из Excel (обратная совместимость).
+                if vals.get('finances') is not None:
+                    node['finances'] = vals['finances']
+                if 'is_financial' in vals:
+                    node['is_financial'] = bool(vals['is_financial'])
         for n, vals in (state.get('kpis') or {}).items():
             if n in self.G.nodes and str(self.G.nodes[n].get('type', '')).upper() == 'KPI':
                 node = self.G.nodes[n]
                 for k in ('periods', 'annual', 'Q1', 'Q2', 'Q3', 'Q4', 'Year'):
                     if vals.get(k) is not None:
                         node[k] = vals[k]
-        self._recompute_leaf_values()
+        # Пересобрать деньги ИЗ ВОССТАНОВЛЕННОГО ИСТОЧНИКА: эффективные финансы листьев,
+        # их ценность и бюджеты родителей — тем же конвейером, что и recalculate(). Без
+        # _compute_effective_finances() лист брал бы finances_eff, посчитанные при сборке из
+        # Excel, и утверждённый перенос средств терялся. Кассовый U-провал (_apply_cashgap…)
+        # НЕ вызываем — квартальные периоды KPI берём как утверждено (из снапшота).
         self._compute_quarter_windows()
+        self._compute_effective_finances()
+        self._recompute_leaf_values()
+        self._recompute_parent_budgets()
         self._propagate_all_kpis()
         self._validate_budgets()
         self._validate_schedule()
