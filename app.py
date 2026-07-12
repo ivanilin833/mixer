@@ -1242,7 +1242,7 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
             st.session_state[revision_key] = midi_state['revision']
 
     # --- 2. CHANNELS 1-4 (MAIN CONSOLE) ---
-    st.markdown('<div class="mx-h">🎛️ M-Vave Console (Основные каналы 1-4)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="mx-console-h">🎛️ M-Vave Console (Основные каналы 1-4)</div>', unsafe_allow_html=True)
     channels = st.columns(4) # <--- Уменьшили до 4 колонок
 
     def draw_channel(col, label, val_key, min_v, max_v, def_v, step, fmt_str, unit):
@@ -1267,7 +1267,7 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
     st.divider()
 
     # --- 3. CHANNELS 5-6 & DYNAMIC GRAPH ---
-    st.markdown('<div class="mx-h">🔄 Перераспределение и Живой прогноз</div>', unsafe_allow_html=True)
+    st.markdown('<div class="mx-console-h">🔄 Перераспределение и Живой прогноз</div>', unsafe_allow_html=True)
 
     cfg = st.session_state.get('custom_config')
     alpha = float(getattr(cfg, 'alpha', 1.0))
@@ -1366,10 +1366,11 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
             k_impact_abs = 0.0
             pct_change = 0.0
             peak_period_label = ""  # Переменная для хранения года максимального эффекта
-            
+            peak_year = None
+
             if k_id in sim_res:
                 pct_change = sim_res[k_id].get('pct_change', 0.0)
-                
+
                 # Достаем точные данные по годам из симуляции (чтобы синхронизировать с таблицей)
                 annual_data = sim_res[k_id].get('annual', {})
                 if annual_data:
@@ -1383,29 +1384,32 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
                         if abs(dev) > abs(max_dev):
                             max_dev = dev
                             max_yr = yr
-                            
+
                     k_impact_abs = max_dev
                     # Если год найден и есть хоть какое-то отклонение, формируем приписку
                     if max_yr is not None and abs(max_dev) > 1e-6:
+                        peak_year = max_yr
                         peak_period_label = f"<br><span style='font-size:11px; color:gray'>Макс. эффект: {max_yr} год</span>"
                 else:
                     # Резервный вариант, если годовых данных нет
                     k_node = engine.G.nodes.get(k_id, {})
                     k_base_val = safe_float(k_node.get('Year', 0))
                     k_impact_abs = pct_change * k_base_val
-            
+
             # Добавляем год в название (работает благодаря поддержке HTML-тегов в Plotly)
             k_label = f"Δ {k_title_wrapped}{peak_period_label}"
-            
+
             # Подстраиваем лимит шкалы под полученное значение
             g_limit = max(0.1, math.ceil(abs(k_impact_abs) * 1.5 * 10) / 10)
-            
+
             _live_sim[k_name] = {
-                'impact_abs': k_impact_abs, 
-                'm': 1.0 + pct_change, 
-                'share': k_share, 
+                'impact_abs': k_impact_abs,
+                'm': 1.0 + pct_change,
+                'share': k_share,
                 'label': k_label,
-                'g_limit': g_limit
+                'g_limit': g_limit,
+                'name': k_name,          # чистое имя без HTML — для оси/ховера торнадо-графика
+                'peak_year': peak_year,  # год максимального эффекта (в ховер, а не в подпись)
             }
 
     # Разделяем интерфейс на 3 независимые колонки
@@ -1501,23 +1505,28 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
             else:
                 for idx, k_info in enumerate(infl):
                     k_name = k_info['KPI']
-                    k_share = k_info['Влияние']
-
-                    if k_name in _live_sim:
-                        ls = _live_sim[k_name]
+                    ls = _live_sim.get(k_name)
+                    if ls:
                         k_impact = ls['impact_abs']
-                        k_label = ls['label']
                         g_limit = ls['g_limit']
                     else:
                         k_impact = 0.0
-                        k_label = f"{k_name}<br>оценка"
                         g_limit = 1.0
+
+                    # Чистый заголовок манометра: имя в 2 строки + маленькая строка «Макс. эффект»
+                    # (год — в подпись, не в подпись оси-торнадо). Без сырого HTML-label, который
+                    # при длинном имени налезал на дугу манометра.
+                    _short = k_name if len(k_name) <= 56 else k_name[:55] + '…'
+                    _lines = textwrap.wrap(_short, width=28)[:2]
+                    _py = ls.get('peak_year') if ls else None
+                    _title = "Δ " + "<br>".join(_lines) + (
+                        f"<br><span style='font-size:10px;color:gray'>Макс. эффект: {_py} год</span>" if _py else "")
 
                     g_color = "#36D399" if k_impact >= 0 else "#FF6B81" if _dk else ("#0E8F5E" if k_impact >= 0 else "#D8425A")
 
                     fig_kpi.add_trace(go.Indicator(
                         mode="gauge+number", value=round(k_impact, 3),
-                        title={"text": k_label, "font": {"size": 12, "color": "gray"}},
+                        title={"text": _title, "font": {"size": 12, "color": "gray"}},
                         number={'valueformat': '+.2f', 'suffix': '', 'font': {'size': 24, 'color': g_color}},
                         gauge={
                             'axis': {'range': [-g_limit, g_limit], 'tickwidth': 1, 'tickcolor': "gray"},
@@ -1528,34 +1537,46 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
                         }
                     ), row=idx+1, col=1)
 
+            # Высота под число строк-манометров: одному хватает 250, двум — по ~215 на каждый,
+            # чтобы многострочный заголовок не наезжал на дугу.
+            _rows_h = 250 if n_rows == 1 else 215 * n_rows
             fig_kpi.update_layout(
-                height=340, margin=dict(l=20, r=20, t=30, b=10),
+                height=_rows_h, margin=dict(l=20, r=20, t=48, b=10),
                 plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
             )
             st.plotly_chart(fig_kpi, use_container_width=True, key=f"gauges_{selected_entity}")
 
         else:
-            chart_height = max(340, n_kpis * 85)
-            k_names, k_impacts, k_colors, k_texts = [], [], [], []
+            # МНОГО ПОКАЗАТЕЛЕЙ: горизонтальный «торнадо». Раньше в подпись оси клали ГОТОВУЮ
+            # HTML-строку label (уже с <br> и <span>), а затем ещё раз резали её textwrap.wrap —
+            # теги рвались, строки наезжали друг на друга. Теперь ось = чистое имя (аккуратный
+            # перенос до 2 строк), «Макс. эффект: год» и полное имя уходят в ховер, а высота
+            # на каждый показатель фиксирована — подписи не накладываются даже при 10+ KPI.
+            _tick = 11 if n_kpis <= 8 else (10 if n_kpis <= 14 else 9)
+            row_h = 78 if n_kpis <= 6 else (62 if n_kpis <= 12 else 52)
+            chart_height = 74 + n_kpis * row_h
+            _axis_txt = "#C2C9D4" if _dk else "#374050"
 
+            k_names, k_impacts, k_colors, k_texts, k_hover = [], [], [], [], []
             for k_info in reversed(infl):
                 k_name = k_info['KPI']
-                k_share = k_info['Влияние']
+                ls = _live_sim.get(k_name)
+                k_impact = ls['impact_abs'] if ls else 0.0
+                peak_year = ls.get('peak_year') if ls else None
 
-                if k_name in _live_sim:
-                    ls = _live_sim[k_name]
-                    k_impact = ls['impact_abs']
-                    k_full_label = ls['label']
-                else:
-                    k_impact = 0.0
-                    k_full_label = k_name
+                # чистое имя без HTML: обрезаем и переносим не более чем на 2 строки
+                short = k_name if len(k_name) <= 60 else k_name[:59] + '…'
+                lines = textwrap.wrap(short, width=24) or [short]
+                if len(lines) > 2:
+                    lines = [lines[0], lines[1].rstrip('…') + '…']
+                k_names.append("<br>".join(lines))
 
-                wrapped_name = "<br>".join(textwrap.wrap(k_full_label, width=42))
-                k_names.append(wrapped_name)
                 k_impacts.append(k_impact)
                 k_colors.append("#36D399" if k_impact >= 0 else "#FF6B81" if _dk else ("#0E8F5E" if k_impact >= 0 else "#D8425A"))
                 k_texts.append(f" {k_impact:+.2f} ")
-                
+                _peak = f"<br>Макс. эффект: {peak_year} год" if peak_year else ""
+                k_hover.append(f"<b>{k_name}</b><br>Изменение: {k_impact:+.2f}{_peak}")
+
             fig_kpi = go.Figure()
             fig_kpi.add_trace(go.Bar(
                 x=k_impacts, y=k_names,
@@ -1563,18 +1584,28 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
                 marker_color=k_colors,
                 text=k_texts,
                 textposition="outside",
+                textfont=dict(size=_tick),
                 cliponaxis=False,
                 showlegend=False,
-                hovertemplate="<b>%{y}</b><br>Изменение: %{x:+.2f}<extra></extra>"
+                customdata=k_hover,
+                hovertemplate="%{customdata}<extra></extra>",
             ))
 
             fig_kpi.update_layout(
-                height=chart_height, margin=dict(l=10, r=40, t=50, b=10),
+                height=chart_height, margin=dict(l=10, r=54, t=54, b=12),
+                bargap=0.32,
                 title=dict(text="Живой прогноз KPI (абс. значение)", font=dict(size=14)),
                 plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+                uniformtext=dict(mode="hide", minsize=8),
             )
-            fig_kpi.update_xaxes(showgrid=True, gridcolor="rgba(128,128,128,0.2)", zeroline=True, zerolinecolor="gray", zerolinewidth=1)
-            fig_kpi.update_yaxes(showgrid=False, automargin=True)
+            # Симметричный диапазон с запасом: значения печатаются ВНЕ столбца (outside), и без
+            # запаса подпись самого длинного столбца упиралась бы в подписи оси Y слева.
+            _m = max((abs(v) for v in k_impacts), default=0.0) or 0.1
+            fig_kpi.update_xaxes(showgrid=True, gridcolor="rgba(128,128,128,0.2)",
+                                 zeroline=True, zerolinecolor="gray", zerolinewidth=1,
+                                 range=[-_m * 1.35, _m * 1.35], tickfont=dict(size=_tick))
+            fig_kpi.update_yaxes(showgrid=False, automargin=True,
+                                 tickfont=dict(size=_tick, color=_axis_txt))
 
             st.plotly_chart(fig_kpi, use_container_width=True, key=f"tornado_{selected_entity}")
 
@@ -1969,14 +2000,19 @@ def page_mixer():
         font-family: var(--mx-mono); font-size: 0.7rem; color: var(--mx-accent);
         font-weight: bold; margin-top: -3px; text-shadow: 0 0 3px rgba(27,77,255,0.3);
     }
-    /* Заголовки пульта */
-    .mx-h { 
-        font-size: 1.1rem; 
-        font-weight: 700; 
-        color: #1f2937; 
-        margin: 20px 0 10px 0; 
-        padding-bottom: 5px;
-        border-bottom: 2px solid #e5e7eb;
+    /* Заголовки пульта. ВАЖНО: не переопределяем глобальный .mx-h (он flex + акцентная
+       точка + переменные темы) — раньше это переопределение хардкодило светлые цвета
+       (#1f2937 / #e5e7eb), из-за чего ВСЕ заголовки .mx-h на странице микшера были
+       нечитаемы в тёмной теме и теряли акцентный маркер. Свой класс для пультовых секций. */
+    .mx-console-h {
+        font-family: var(--mx-display);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--mx-ink);
+        letter-spacing: -.01em;
+        margin: 18px 0 10px 0;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--mx-border);
     }
     /* Метрики в стиле дашборда */
     [data-testid="stMetricValue"] { font-size: 1.2rem; }
