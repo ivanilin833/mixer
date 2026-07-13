@@ -2461,17 +2461,33 @@ class ProjectMixer:
                     if status not in amounts:
                         continue
                     target = float(amounts.get(status, 0.0) or 0.0)
-                    own_sum = sum(float(eff.get(l, {}).get(y_str, {}).get(status, 0.0) or 0.0) for l in active_fin_desc)
-                    
-                    if own_sum > 1e-9:
-                        scale = target / own_sum
+                    with_money = [l for l in active_fin_desc
+                                  if float(eff.get(l, {}).get(y_str, {}).get(status, 0.0) or 0.0) > 1e-9]
+                    moneyless = [l for l in active_fin_desc if l not in with_money]
+                    own_sum = sum(float(eff[l][y_str][status]) for l in with_money)
+
+                    if target <= 1e-9:
+                        # Цель года = 0 → обнуляем этот год/статус у всех активных работ.
                         for l in active_fin_desc:
                             if y_str in eff[l] and status in eff[l][y_str]:
-                                eff[l][y_str][status] = float(eff[l][y_str][status]) * scale
-                    elif target > 1e-9:
-                        for l in active_fin_desc:
-                            eff[l].setdefault(y_str, {})
-                            eff[l][y_str][status] = float(eff[l][y_str].get(status, 0.0) or 0.0) + target * wshare_active.get(l, 0.0)
+                                eff[l][y_str][status] = 0.0
+                        continue
+
+                    # Работам, у которых в этом году денег ЕЩЁ НЕТ, но они допустимы (начались не
+                    # позже года), достаётся доля цели ПО ВЕСУ — так средства позднего года
+                    # приходят и к работам с более ранним плановым сроком, сдвигая их срок
+                    # (кассовый разрыв). Прежде такие работы не получали ничего: масштаб трогал
+                    # только работы с уже имеющимися деньгами, и при переносе денег на поздний год
+                    # у родителя ранние работы обнулялись, а срок не двигался.
+                    for l in moneyless:
+                        eff[l].setdefault(y_str, {})
+                        eff[l][y_str][status] = target * wshare_active.get(l, 0.0)
+                    # Остаток цели — работам, уже имеющим деньги, с СОХРАНЕНИЕМ их пропорций.
+                    tgt_with = target * sum(wshare_active.get(l, 0.0) for l in with_money)
+                    if own_sum > 1e-9:
+                        scale = tgt_with / own_sum
+                        for l in with_money:
+                            eff[l][y_str][status] = float(eff[l][y_str][status]) * scale
         for l in leaves:
             self.G.nodes[l]['finances_eff'] = json.dumps(eff[l], ensure_ascii=False)
 
