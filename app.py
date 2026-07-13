@@ -1168,44 +1168,43 @@ def page_projects():
 # ======================================================================
 
 def _apply_transfer_deltas(selected_entity, active_years, state_key):
-    """Инкрементально переносит деньги между 'Потребность'/'Доп. потребность' и 'База' по
-    ползункам Каналов 7/8 (% от исходной суммы года). ОБЩАЯ функция для пульта (фрагмент,
-    который перерисовывается САМ ПО СЕБЕ при перетаскивании ползунка) и для основного тела
-    страницы: если считать перенос в двух местах отдельно, копия внутри фрагмента не увеличивала
-    table_nonce — а без этого таблица (data_editor с ключом на table_nonce) не перечитывает
-    новые данные при следующей полной перерисовке, и «Применить сценарий» уходит по старым,
-    ещё не перенесённым цифрам."""
+    """АБСОЛЮТНО пересчитывает База/Потребность/Доп из БАЗОВЫХ сумм года (_orig_*) и позиций
+    ползунков Каналов 7/8 (доля переноса = положение ползунка), а не инкрементально.
+
+    Прежний инкрементальный вариант (`База += Δ·_orig`) накапливал ошибку и при рассинхроне
+    _orig с ползунком (например, после commit таблица переинициализируется новыми суммами, а
+    ползунок остаётся на 100 %) уводил Базу в МИНУС. Отрицательная База затем обнулялась _fnum-ом
+    в расчёте бюджета: потребность считалась полностью, «минус» игнорировался — эффективный
+    бюджет и показатель ЗАВЫШАЛИСЬ (показатель рос при переносе даже при 100 %/100 % доведения),
+    а живой прогноз «замирал» (обнулённая база не меняла сигнатуру мемоизации). Абсолютный
+    пересчёт детерминирован, идемпотентен и НЕ может уйти в минус.
+
+    Общая функция для пульта (фрагмент) и основного тела: бампает table_nonce при изменении,
+    иначе data_editor (ключ на table_nonce) не перечитал бы новые числа."""
     if not active_years:
         return False
     changed = False
     for y_str in active_years:
-        kr = f"ch_trans_req_{selected_entity}_{y_str}"
-        ka = f"ch_trans_add_{selected_entity}_{y_str}"
-        l_kr = f"_last_val_{kr}"
-        l_ka = f"_last_val_{ka}"
-
-        curr_req = st.session_state.get(kr, 0)
-        curr_add = st.session_state.get(ka, 0)
-        last_req = st.session_state.get(l_kr, 0)
-        last_add = st.session_state.get(l_ka, 0)
-
-        if curr_req != last_req or curr_add != last_add:
-            changed = True
-            delta_req = (curr_req - last_req) / 100.0
-            delta_add = (curr_add - last_add) / 100.0
-
-            st.session_state[l_kr] = curr_req
-            st.session_state[l_ka] = curr_add
-
-            for r in st.session_state[state_key]:
-                if r["Год"] == y_str:
-                    amt_req = _fnum(r.get("_orig_req")) * delta_req
-                    amt_add = _fnum(r.get("_orig_add")) * delta_add
-                    r["База"] += (amt_req + amt_add)
-                    r["Потребность"] -= amt_req
-                    r["Доп. потребность"] -= amt_add
-
-            st.session_state.table_nonce += 1
+        pct_req = min(1.0, max(0.0, float(st.session_state.get(f"ch_trans_req_{selected_entity}_{y_str}", 0)) / 100.0))
+        pct_add = min(1.0, max(0.0, float(st.session_state.get(f"ch_trans_add_{selected_entity}_{y_str}", 0)) / 100.0))
+        for r in st.session_state[state_key]:
+            if str(r.get("Год")) != str(y_str):
+                continue
+            o_b = _fnum(r.get("_orig_base"))
+            o_r = _fnum(r.get("_orig_req"))
+            o_a = _fnum(r.get("_orig_add"))
+            new_base = o_b + o_r * pct_req + o_a * pct_add
+            new_req = o_r * (1.0 - pct_req)
+            new_add = o_a * (1.0 - pct_add)
+            if (abs(new_base - safe_float(r.get("База"))) > 1e-6
+                    or abs(new_req - safe_float(r.get("Потребность"))) > 1e-6
+                    or abs(new_add - safe_float(r.get("Доп. потребность"))) > 1e-6):
+                r["База"] = new_base
+                r["Потребность"] = new_req
+                r["Доп. потребность"] = new_add
+                changed = True
+    if changed:
+        st.session_state.table_nonce += 1
     return changed
 
 
@@ -2578,6 +2577,13 @@ def page_mixer():
                                 "_orig_add": float(d.get("add", 0.0))
                             })
                         st.session_state[state_key] = rows_init
+                        # Свежая таблица = утверждённый базис БЕЗ ожидающего переноса. Сбрасываем
+                        # ползунки Каналов 7/8 в 0, иначе после commit (табл. переинициализируется
+                        # уже с внесённым переносом) абсолютный пересчёт применил бы тот же процент
+                        # ПОВТОРНО к новому базису.
+                        for y in range(start_y, end_y + 1):
+                            st.session_state[f"ch_trans_req_{selected_entity}_{y}"] = 0
+                            st.session_state[f"ch_trans_add_{selected_entity}_{y}"] = 0
 
                     st.markdown('<div class="mx-h"><span class="t">Перераспределение средств (Каналы 7 и 8)</span></div>', unsafe_allow_html=True)
                     st.caption("Выберите годы для настройки переноса. Ползунки и график появятся на пульте ниже.")
@@ -2607,36 +2613,34 @@ def page_mixer():
                     df_fin = pd.DataFrame([{k: v for k, v in r.items() if not k.startswith('_')} for r in st.session_state[state_key]])
                     
                     def on_fin_edit():
-                        # Когда вы вносите цифры руками, они сразу сохраняются в мастер-слепок
+                        # Ручная правка ячейки становится НОВЫМ БАЗИСОМ года: применяем правку,
+                        # «запекаем» текущие показанные суммы в _orig_* и сбрасываем ползунки
+                        # переноса этого года в 0. Так перенос (Каналы 7/8) считается АБСОЛЮТНО от
+                        # свежего базиса, а не накапливается — База больше не уходит в минус.
                         midi_s = get_midi_state()
                         editor_key = f"fin_editor_{selected_entity}_{st.session_state.table_nonce}"
                         edits = st.session_state[editor_key].get("edited_rows", {})
-                        
+
                         for row_idx, changes in edits.items():
-                            y_str = st.session_state[state_key][row_idx]["Год"]
+                            row = st.session_state[state_key][row_idx]
+                            y_str = row["Год"]
                             for col, val in changes.items():
                                 # Удаление значения в ячейке даёт None — трактуем как 0.0
                                 try:
                                     float_val = float(val) if val is not None else 0.0
                                 except (TypeError, ValueError):
                                     float_val = 0.0
-                                if float_val < 0:
-                                    float_val = 0.0
-                                st.session_state[state_key][row_idx][col] = float_val
-                                
-                                # Обновляем скрытые поля и сбрасываем ползунки, в т.ч. в памяти пульта
-                                if col == "Потребность":
-                                    st.session_state[state_key][row_idx]["_orig_req"] = float_val
-                                    st.session_state[f"ch_trans_req_{selected_entity}_{y_str}"] = 0
-                                    st.session_state[f"_last_val_ch_trans_req_{selected_entity}_{y_str}"] = 0
-                                    if MIDI_AVAILABLE: midi_s['trans_req'] = 0
-                                elif col == "Доп. потребность":
-                                    st.session_state[state_key][row_idx]["_orig_add"] = float_val
-                                    st.session_state[f"ch_trans_add_{selected_entity}_{y_str}"] = 0
-                                    st.session_state[f"_last_val_ch_trans_add_{selected_entity}_{y_str}"] = 0
-                                    if MIDI_AVAILABLE: midi_s['trans_add'] = 0
-                                elif col == "База":
-                                    st.session_state[state_key][row_idx]["_orig_base"] = float_val
+                                row[col] = max(0.0, float_val)
+                            # Новый базис года = показанные суммы (с учётом уже применённой правки).
+                            row["_orig_base"] = safe_float(row.get("База"))
+                            row["_orig_req"] = safe_float(row.get("Потребность"))
+                            row["_orig_add"] = safe_float(row.get("Доп. потребность"))
+                            # Перенос сброшен: цифры уже отражают то, что ввёл пользователь.
+                            st.session_state[f"ch_trans_req_{selected_entity}_{y_str}"] = 0
+                            st.session_state[f"ch_trans_add_{selected_entity}_{y_str}"] = 0
+                            if MIDI_AVAILABLE:
+                                midi_s['trans_req'] = 0
+                                midi_s['trans_add'] = 0
 
                     edited_fin = st.data_editor(
                         df_fin,
