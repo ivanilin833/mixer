@@ -6,6 +6,7 @@
 # автоматически по наличию schedule.xlsx.
 
 import os
+import copy
 import re
 import io
 import json
@@ -331,16 +332,18 @@ def delete_project(ctx: ProjectContext):
 # НАСТРОЙКИ ПРОЕКТА (единица бюджета и пр.) — персист на диск
 # ======================================================================
 # Допустимые ключи и значения по умолчанию (расширяемо).
-_PROJECT_SETTINGS_DEFAULT = {'budget_scale': 'millions'}
+_PROJECT_SETTINGS_DEFAULT = {'budget_scale': 'millions', 'financial_flags': {}}
 
 
 def load_project_settings(ctx: ProjectContext) -> Dict[str, Any]:
-    d = dict(_PROJECT_SETTINGS_DEFAULT)
+    d = copy.deepcopy(_PROJECT_SETTINGS_DEFAULT)
     try:
         if os.path.exists(ctx.settings_path):
             with open(ctx.settings_path, 'r', encoding='utf-8') as f:
                 saved = json.load(f) or {}
             d.update({k: v for k, v in saved.items() if k in d})
+            if not isinstance(d.get('financial_flags'), dict):
+                d['financial_flags'] = {}
     except Exception:
         pass
     return d

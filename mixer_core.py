@@ -1,4 +1,4 @@
-﻿# mixer_core.py
+# mixer_core.py
 
 import random
 import copy
@@ -256,6 +256,12 @@ def budget_unit(scale: str, key: str = 'short') -> str:
     """Подпись единицы бюджета для интерфейса ('млн ₽' / 'тыс ₽' / '₽')."""
     return BUDGET_UNITS.get(str(scale), BUDGET_UNITS['millions']).get(key, 'млн ₽')
 
+
+
+# Минимальная содержательная сумма одной ячейки финансовой матрицы. Таблица редактируется
+# с точностью до 0,01, поэтому остаток меньше половины шага считается вычислительным шумом:
+# он участвует в сумме бюджета, но НЕ должен сам по себе переносить срок работы на следующий год.
+FINANCE_CELL_EPS = 0.005
 
 @dataclass
 class MixerConfig:
@@ -1819,8 +1825,10 @@ class ProjectMixer:
             
             # Взвешенный бюджет с локальными коэффициентами задачи
             val = float(amounts.get('base', 0.0)) + float(amounts.get('req_extra', 0.0)) * rho_req + float(amounts.get('add', 0.0)) * rho_add
-            if val > 1e-9:
-                if last_year is None or y > last_year:
+            if val > 1e-12:
+                # Сумму учитываем полностью, но вычислительная пыль меньше половины шага
+                # финансового редактора не должна сама переносить срок на конец следующего года.
+                if val >= FINANCE_CELL_EPS and (last_year is None or y > last_year):
                     last_year = y
                 f_eff += val
                 f_real += val / ((1.0 + rate) ** max(0, y - base_y))
@@ -2341,10 +2349,12 @@ class ProjectMixer:
             return {l: 1.0 / len(desc) for l in desc}
         return {l: acc[l] / tot for l in desc}
 
-    def _finances_match(self, a, b, tol: float = 0.5) -> bool:
+    def _finances_match(self, a, b, tol: float = 0.005) -> bool:
         """True, если два финансовых профиля совпадают по годам/статусам в пределах допуска
-        (матрица показывает эффективные деньги с округлением — точного равенства не будет).
-        Используется, чтобы отличить реальную правку денег от повторного применения того же."""
+        (финансовый редактор показывает 2 знака, поэтому половина минимального шага — 0.005).
+        Прежний допуск 0.5 скрывал реальные правки до 0.49 единицы бюджета (например, почти
+        полмиллиона рублей при масштабе «млн»). Используется, чтобы отличить реальную правку
+        денег от повторного применения того же."""
         pa = self._parse_finances(a) or {}
         pb = self._parse_finances(b) or {}
         years = set(pa.keys()) | set(pb.keys())
@@ -2354,6 +2364,247 @@ class ProjectMixer:
             for st_ in ('base', 'req_extra', 'add'):
                 if abs(float(va.get(st_, 0.0) or 0.0) - float(vb.get(st_, 0.0) or 0.0)) > tol:
                     return False
+        return True
+
+    def _apply_parent_finances_preserving_distribution(self, entity_id: str, new_finances: dict) -> bool:
+        """Применяет агрегированный профиль родителя без перемешивания денег детей и лет.
+
+        Главный инвариант: перенос статуса внутри года (например, ``Потребность → База``)
+        сохраняет год и сумму КАЖДОГО ребёнка. Перенос между годами сохраняет ребёнка, но меняет
+        год. Предыдущая реализация складывала все уменьшения всех лет в один общий пул, а затем
+        разливала его по всем увеличившимся ячейкам. Поэтому при одновременном переводе статуса
+        в 2026 и 2027 годах ребёнок с деньгами только в 2026 внезапно получал часть денег 2027,
+        его срок становился 31.12.2027, а ценность падала из-за лишней длительности/дисконта.
+
+        Транспорт выполняется в три приоритетных этапа:
+          1) внутри того же года между статусами;
+          2) внутри того же статуса между годами;
+          3) оставшиеся комбинированные переносы «год + статус».
+        В каждом потоке сохраняется распределение исходной ячейки по детям. Только чистый рост
+        общего бюджета (не покрытый высвобождёнными деньгами) распределяется по прежним долям
+        либо структурным весам.
+        """
+        leaves = self._leaf_descendants(entity_id)
+        if not leaves:
+            return False
+
+        statuses = ('base', 'req_extra', 'add')
+
+        def canon(fin):
+            src = self._parse_finances(fin) or {}
+            out = {}
+            for y, row in src.items():
+                if not isinstance(row, dict):
+                    continue
+                ys = str(y)
+                out[ys] = {st_: max(0.0, float(row.get(st_, 0.0) or 0.0)) for st_ in statuses}
+            return out
+
+        old_leaf = {l: canon(self.display_finances(l)) for l in leaves}
+        target = canon(new_finances)
+        years = set(target)
+        for fin in old_leaf.values():
+            years.update(fin)
+
+        def year_key(y):
+            try:
+                return (0, int(y))
+            except (TypeError, ValueError):
+                return (1, str(y))
+
+        ordered_years = sorted((str(y) for y in years), key=year_key)
+        cells = [(y, st_) for y in ordered_years for st_ in statuses]
+        old_by_cell = {
+            cell: {l: float(old_leaf[l].get(cell[0], {}).get(cell[1], 0.0) or 0.0) for l in leaves}
+            for cell in cells
+        }
+        old_tot = {cell: sum(vals.values()) for cell, vals in old_by_cell.items()}
+        new_tot = {
+            (y, st_): float(target.get(y, {}).get(st_, 0.0) or 0.0)
+            for y, st_ in cells
+        }
+
+        out = {l: {cell: 0.0 for cell in cells} for l in leaves}
+        supply = {cell: {l: 0.0 for l in leaves} for cell in cells}
+        demand = {cell: 0.0 for cell in cells}
+
+        # Неизменившаяся часть остаётся у тех же детей в той же ячейке.
+        for cell in cells:
+            ot, nt = old_tot[cell], new_tot[cell]
+            keep = min(ot, nt)
+            if ot > 1e-12:
+                keep_k = keep / ot
+                for l in leaves:
+                    old_v = old_by_cell[cell][l]
+                    kept = old_v * keep_k
+                    out[l][cell] = kept
+                    supply[cell][l] = max(0.0, old_v - kept)
+            demand[cell] = max(0.0, nt - ot)
+
+        def supply_total(cell):
+            return sum(max(0.0, v) for v in supply[cell].values())
+
+        def move(source, target_cell, requested=None):
+            """Переносит поток, сохраняя доли детей исходной ячейки."""
+            src_total = supply_total(source)
+            dst_need = demand[target_cell]
+            amount = min(src_total, dst_need)
+            if requested is not None:
+                amount = min(amount, max(0.0, float(requested)))
+            if amount <= 1e-12 or src_total <= 1e-12:
+                return 0.0
+            # Пропорциональное списание из source гарантирует сохранение ребёнка.
+            moved_sum = 0.0
+            active = [l for l in leaves if supply[source][l] > 1e-15]
+            for i, l in enumerate(active):
+                if i == len(active) - 1:
+                    moved = amount - moved_sum
+                else:
+                    moved = amount * supply[source][l] / src_total
+                    moved_sum += moved
+                moved = min(max(0.0, moved), supply[source][l])
+                supply[source][l] -= moved
+                out[l][target_cell] += moved
+            demand[target_cell] = max(0.0, demand[target_cell] - amount)
+            return amount
+
+        def match(sources, targets, source_order=None):
+            for tgt in targets:
+                if demand[tgt] <= 1e-12:
+                    continue
+                candidates = [src for src in sources if supply_total(src) > 1e-12 and src != tgt]
+                if source_order is not None:
+                    candidates.sort(key=lambda src: source_order(src, tgt))
+                for src in candidates:
+                    if demand[tgt] <= 1e-12:
+                        break
+                    move(src, tgt)
+
+        # 1) Статусный перенос: НИ ОДНА копейка не должна покинуть свой год.
+        for y in ordered_years:
+            sources = [(y, st_) for st_ in statuses if supply_total((y, st_)) > 1e-12]
+            targets = [(y, st_) for st_ in statuses if demand[(y, st_)] > 1e-12]
+            match(sources, targets)
+
+        # 2) Межгодовой перенос того же статуса. Ближайший исходный год выбирается первым.
+        def distance_order(src, tgt):
+            try:
+                return (abs(int(src[0]) - int(tgt[0])), year_key(src[0]), statuses.index(src[1]))
+            except Exception:
+                return (10**9, year_key(src[0]), statuses.index(src[1]))
+
+        for st_ in statuses:
+            sources = [(y, st_) for y in ordered_years if supply_total((y, st_)) > 1e-12]
+            targets = [(y, st_) for y in ordered_years if demand[(y, st_)] > 1e-12]
+            match(sources, targets, source_order=distance_order)
+
+        # 3) Комбинированный перенос между разными годами и статусами.
+        remaining_sources = [cell for cell in cells if supply_total(cell) > 1e-12]
+        remaining_targets = [cell for cell in cells if demand[cell] > 1e-12]
+        match(remaining_sources, remaining_targets, source_order=distance_order)
+
+        structural = self._subtree_leaf_weight_shares(entity_id, leaves)
+
+        def growth_shares(target_year: str, target_cell) -> Dict[str, float]:
+            """Доли только для действительно новых денег сверх высвобождённого бюджета."""
+            cell_sum = old_tot.get(target_cell, 0.0)
+            if cell_sum > 1e-12:
+                return {l: old_by_cell[target_cell][l] / cell_sum for l in leaves}
+
+            year_amounts = {
+                l: sum(float(old_leaf[l].get(target_year, {}).get(st_, 0.0) or 0.0)
+                       for st_ in statuses)
+                for l in leaves
+            }
+            year_sum = sum(year_amounts.values())
+            if year_sum > 1e-12:
+                return {l: year_amounts[l] / year_sum for l in leaves}
+
+            try:
+                yy = int(target_year)
+            except Exception:
+                yy = None
+            eligible = []
+            for l in leaves:
+                if not self.G.nodes[l].get('is_financial'):
+                    continue
+                if yy is None:
+                    eligible.append(l)
+                    continue
+                try:
+                    if self._pdate(self.G.nodes[l].get('T_start')).year <= yy:
+                        eligible.append(l)
+                except Exception:
+                    eligible.append(l)
+            if not eligible:
+                eligible = list(leaves)
+
+            sw = {l: max(0.0, float(structural.get(l, 0.0))) for l in eligible}
+            sw_sum = sum(sw.values())
+            if sw_sum > 1e-12:
+                return {l: (sw.get(l, 0.0) / sw_sum if l in eligible else 0.0) for l in leaves}
+            return {l: (1.0 / len(eligible) if l in eligible else 0.0) for l in leaves}
+
+        # Непокрытый спрос = чистое увеличение общего бюджета.
+        for cell in cells:
+            remainder = demand[cell]
+            if remainder <= 1e-12:
+                continue
+            shares = growth_shares(cell[0], cell)
+            assigned = 0.0
+            active = [l for l in leaves if shares.get(l, 0.0) > 0.0]
+            if not active:
+                active = list(leaves)
+                shares = {l: 1.0 / len(active) for l in active}
+            for i, l in enumerate(active):
+                value = remainder - assigned if i == len(active) - 1 else remainder * shares.get(l, 0.0)
+                assigned += value
+                out[l][cell] += value
+            demand[cell] = 0.0
+
+        # Защитная коррекция округления: сумма детей в каждой ячейке обязана равняться цели.
+        for cell in cells:
+            actual = sum(out[l][cell] for l in leaves)
+            delta = new_tot[cell] - actual
+            if abs(delta) <= 1e-9:
+                continue
+            if delta > 0:
+                shares = growth_shares(cell[0], cell)
+                recipient = max(leaves, key=lambda l: shares.get(l, 0.0))
+                out[recipient][cell] += delta
+            else:
+                need = -delta
+                for l in sorted(leaves, key=lambda x: out[x][cell], reverse=True):
+                    take = min(need, out[l][cell])
+                    out[l][cell] -= take
+                    need -= take
+                    if need <= 1e-12:
+                        break
+
+        adjusted = {l: copy.deepcopy(old_leaf[l]) for l in leaves}
+        for l in leaves:
+            for y in ordered_years:
+                adjusted[l].setdefault(y, {})
+                for st_ in statuses:
+                    v = out[l][(y, st_)]
+                    adjusted[l][y][st_] = 0.0 if abs(v) < 1e-12 else float(v)
+
+        self._clear_rollup_sources(entity_id)
+        self.G.nodes[entity_id]['finances'] = json.dumps({})
+        for l in leaves:
+            self.G.nodes[l]['finances'] = json.dumps(adjusted[l], ensure_ascii=False)
+            if any(float(v.get(st_, 0.0) or 0.0) > 1e-9
+                   for v in adjusted[l].values() if isinstance(v, dict) for st_ in statuses):
+                self.G.nodes[l]['is_financial'] = True
+
+        # Диагностический инвариант — не блокирует работу, но оставляет точную причину в логе.
+        for cell in cells:
+            actual = sum(float(adjusted[l].get(cell[0], {}).get(cell[1], 0.0) or 0.0) for l in leaves)
+            if abs(actual - new_tot[cell]) > FINANCE_CELL_EPS:
+                logger.error(
+                    "Нарушен инвариант распределения %s %s/%s: цель=%.6f, дети=%.6f",
+                    entity_id, cell[0], cell[1], new_tot[cell], actual,
+                )
         return True
 
     def _clear_rollup_sources(self, entity_id: str):
@@ -3462,26 +3713,20 @@ class ProjectMixer:
                 for n in self.G.nodes()
                 if str(self.G.nodes[n].get('type', '')).upper() != 'KPI'}
         try:
-            # «Было» — из того же канонического конвейера, что и old_kpis в mix().
-            self._clear_rollup_sources(entity_id)
-            self._compute_effective_finances()
-            self._recompute_leaf_values()
-            self._recompute_parent_budgets()
+            # «Было» — текущее утверждённое состояние без каких-либо очисток/перераспределений.
             before = {L: (float(self.G.nodes[L].get('F', 0.0)),
                           float(self.G.nodes[L].get('local_value', 0.0))) for L in leaves}
             end_before = {L: self.G.nodes[L].get('T_end') for L in leaves}
             fin_before = {L: self.display_finances(L) for L in leaves}
-            # «Стало» — применяем правку денег родителя (та же логика, что в mix/commit).
+            # «Стало» — применяем ту же семантику, что mix/commit: no-op ничего не меняет,
+            # реальная правка агрегата сохраняет распределение по дочерним работам.
             self.G.nodes[entity_id]['rho_req'] = rho_req
             self.G.nodes[entity_id]['rho_add'] = rho_add
             for L in leaves:
                 self.G.nodes[L]['rho_req'] = rho_req
                 self.G.nodes[L]['rho_add'] = rho_add
-            self.G.nodes[entity_id]['finances'] = copy.deepcopy(new_finances or {})
-            if any(float(v.get(s, 0.0) or 0.0) > 1e-9 for v in (new_finances or {}).values()
-                   if isinstance(v, dict) for s in ('base', 'req_extra', 'add')):
-                self.G.nodes[entity_id]['is_financial'] = True
-            self._clear_rollup_sources(entity_id)
+            if not self._finances_match(new_finances or {}, self.display_finances(entity_id)):
+                self._apply_parent_finances_preserving_distribution(entity_id, new_finances or {})
             self._compute_effective_finances()
             self._recompute_leaf_values()
             self._recompute_parent_budgets()
@@ -3554,6 +3799,314 @@ class ProjectMixer:
             y0 = int(getattr(self.config, 'base_year', 2026))
         return {str(y0): {'base': new_F, 'req_extra': 0.0, 'add': 0.0}}
 
+    def _trace_state_finances(self, state: Dict[str, Any]) -> Dict[str, Dict[str, float]]:
+        """Финансовый профиль из снимка узла тем же правилом, что display_finances() для листа."""
+        if not isinstance(state, dict):
+            return {}
+        src = state.get('finances_eff', None)
+        if src is None:
+            src = state.get('finances', {})
+        return self._parse_finances(src)
+
+    def _trace_leaf_budget(self, state: Dict[str, Any]) -> Tuple[float, float]:
+        """(эффективный номинал, дисконтированный бюджет) листа из старого/нового состояния."""
+        profile = self._trace_state_finances(state)
+        rho_req = float(state.get('rho_req', 1.0) or 0.0)
+        rho_add = float(state.get('rho_add', 0.0) or 0.0)
+        f_nom, f_real, _ = self._evaluate_node_finances(profile, rho_req, rho_add)
+        # Совместимость со старыми проектами, где F есть, а профиль финансов ещё не заполнен.
+        raw_f = float(state.get('F', 0.0) or 0.0)
+        if not profile and raw_f > 1e-9:
+            f_nom = raw_f
+            f_real = raw_f
+        return float(f_nom), float(f_real)
+
+    def _trace_node_budget(self, node_id: str, snapshot: Dict[str, Dict[str, Any]],
+                           old: bool) -> Tuple[float, float]:
+        """Бюджет узла для трассировки. У родителя — сумма листьев его поддерева."""
+        if str(self.G.nodes[node_id].get('type', '')).upper() == 'KPI':
+            return 0.0, 0.0
+        leaves = self._leaf_descendants(node_id)
+        if not leaves:  # сам узел — лист
+            stt = snapshot.get(node_id, {}) if old else self.G.nodes[node_id]
+            return self._trace_leaf_budget(stt)
+        nom = real = 0.0
+        for leaf in leaves:
+            stt = snapshot.get(leaf, {}) if old else self.G.nodes[leaf]
+            n, r = self._trace_leaf_budget(stt)
+            nom += n; real += r
+        return float(nom), float(real)
+
+    def _trace_aggregation(self, kpi_id: str, node_id: str, values: Dict[str, float],
+                           local_value: float) -> Dict[str, Any]:
+        """Числовая раскладка агрегатора одного узла для выбранного KPI.
+
+        Возвращает фактические входы детей, веса, промежуточные члены CES/классической
+        формулы и рассчитанный агрегат. Используется только для объяснения, модель не меняет.
+        """
+        preds = [p for p in self.G.predecessors(node_id) if p in values]
+        if not preds:
+            if str(getattr(self.config, 'forecast_mode', 'value')) == 'completion' and \
+                    str(self.G.nodes[node_id].get('type', '')).upper() != 'KPI':
+                vp = float(self.G.nodes[node_id].get('v_plan', 0.0) or 0.0)
+                out = min(3.0, max(0.0, float(local_value) / vp)) if vp > 1e-9 else 1.0
+                return {'mode': 'leaf_completion', 'rho': None, 'children': [],
+                        'local': float(local_value), 'combined': out, 'inhibitory': 0.0,
+                        'activation': 1.0, 'computed': float(out)}
+            return {'mode': 'leaf', 'rho': None, 'children': [],
+                    'local': float(local_value), 'combined': float(local_value),
+                    'inhibitory': 0.0, 'activation': 1.0, 'computed': float(local_value)}
+
+        weights = self.kpi_weights.get(kpi_id, {})
+        calib = self.get_kpi_calibration(kpi_id)
+        use_ces = str(calib.get('agg_mode', '')).lower() == 'ces'
+        rho = float(calib.get('ces_rho', 1.0))
+        rows = []
+        pos_pairs = []
+        pos_raw = 0.0
+        inh_raw = 0.0
+        pos_count = 0
+        for child in preds:
+            wd = weights.get((child, node_id), {})
+            w = float(wd.get('weight', 0.0) or 0.0)
+            rt = canonical_relation(wd.get('relation_type', 'linear'))
+            v = float(values.get(child, 0.0) or 0.0)
+            contrib, inhibitory = self._edge_contribution(rt, w, v)
+            row = {
+                'id': child,
+                'name': str(self.G.nodes[child].get('name', child)),
+                'weight': w,
+                'relation': rt,
+                'value': v,
+                'inhibitory': bool(inhibitory),
+                'term': 0.0,
+            }
+            if inhibitory:
+                inh_raw += float(contrib)
+                row['term'] = float(contrib)
+            else:
+                pos_raw += float(contrib)
+                pos_pairs.append((w, v))
+                if contrib > 0:
+                    pos_count += 1
+            rows.append(row)
+
+        if use_ces:
+            positive = [r for r in rows if not r['inhibitory']]
+            if abs(rho) < 1e-6:
+                sw = sum(r['weight'] for r in positive) or 1.0
+                for r in positive:
+                    r['term'] = (r['weight'] / sw) * float(np.log(max(1e-9, r['value'])))
+            else:
+                for r in positive:
+                    vv = max(0.0, r['value'])
+                    if rho < 0 and vv <= 1e-9:
+                        r['term'] = float('-inf')
+                    else:
+                        r['term'] = r['weight'] * (vv ** rho)
+            combined = self._ces_combine(pos_pairs, rho)
+            computed = max(0.0, float(local_value) + combined - inh_raw)
+            return {'mode': 'ces', 'rho': rho, 'children': rows,
+                    'local': float(local_value), 'combined': float(combined),
+                    'inhibitory': float(inh_raw), 'activation': 1.0,
+                    'positive_raw': float(pos_raw), 'computed': float(computed)}
+
+        threshold = self.config.activation_threshold
+        k = self.config.sigmoid_activation_k
+        activation = 1.0 if pos_count <= 1 else stable_sigmoid(k * (pos_raw - threshold))
+        computed = max(0.0, float(local_value) + pos_raw * activation - inh_raw)
+        for r in rows:
+            if not r['inhibitory']:
+                contrib, _ = self._edge_contribution(r['relation'], r['weight'], r['value'])
+                r['term'] = float(contrib)
+        return {'mode': 'classic', 'rho': None, 'children': rows,
+                'local': float(local_value), 'combined': float(pos_raw),
+                'inhibitory': float(inh_raw), 'activation': float(activation),
+                'positive_raw': float(pos_raw), 'computed': float(computed)}
+
+    def _build_scenario_trace(self, kpi_id: str, entity_id: str,
+                              snapshot: Dict[str, Dict[str, Any]],
+                              old_values: Dict[str, float], eps: float = 1e-8) -> Dict[str, Any]:
+        """Полная неразрушающая трассировка «было→стало» по всем изменившимся сущностям KPI."""
+        nodes = list(self._kpi_sub_order.get(kpi_id, []))
+        if not nodes:
+            anc = nx.ancestors(self.G, kpi_id) | {kpi_id}
+            nodes = [n for n in getattr(self, '_topo_order', list(nx.topological_sort(self.G))) if n in anc]
+        new_values = {n: float(self.G.nodes[n].get('agg_by_kpi', {}).get(kpi_id, 0.0) or 0.0)
+                      for n in nodes}
+        lam_eff = float(self._eff_lambda())
+        alpha = float(self.config.alpha)
+        entities = []
+
+        def _state(n, old):
+            if old and n in snapshot:
+                # Статические поля берём из графа, динамические — из снимка.
+                z = dict(self.G.nodes[n]); z.update(snapshot[n]); return z
+            return dict(self.G.nodes[n])
+
+        def _duration(stt):
+            try:
+                return max(1, (self._pdate(stt.get('T_end')) - self._pdate(stt.get('T_start'))).days)
+            except Exception:
+                return 0
+
+        def _ancestor_ref_for_state(node_id: str, old: bool) -> float:
+            parts = [p for p in str(node_id).split('.') if p]
+            while len(parts) > 1:
+                parts = parts[:-1]
+                cur = '.'.join(parts)
+                if cur in self.G.nodes:
+                    stt = _state(cur, old)
+                    try:
+                        d = (self._pdate(stt.get('T_end')) - self._pdate(stt.get('T_start'))).days
+                    except Exception:
+                        d = 0
+                    if d and d > 0:
+                        return float(max(30, d))
+            return 90.0
+
+        for n in nodes:
+            a = self.G.nodes[n]
+            typ = str(a.get('type', ''))
+            is_kpi = typ.upper() == 'KPI'
+            old_st = _state(n, True); new_st = _state(n, False)
+            local_old = float(old_st.get('local_value', 0.0) or 0.0)
+            local_new = float(new_st.get('local_value', 0.0) or 0.0)
+            agg_old = float(old_values.get(n, 0.0) or 0.0)
+            agg_new = float(new_values.get(n, 0.0) or 0.0)
+            if abs(agg_new - agg_old) <= eps and abs(local_new - local_old) <= eps:
+                continue
+
+            f_nom_old, f_real_old = self._trace_node_budget(n, snapshot, True)
+            f_nom_new, f_real_new = self._trace_node_budget(n, snapshot, False)
+            dur_old, dur_new = _duration(old_st), _duration(new_st)
+            budget_old = alpha * float(np.log1p(lam_eff * max(0.0, f_real_old))) if not is_kpi else 0.0
+            budget_new = alpha * float(np.log1p(lam_eff * max(0.0, f_real_new))) if not is_kpi else 0.0
+            time_old = local_old - budget_old
+            time_new = local_new - budget_new
+            old_break = self._trace_aggregation(kpi_id, n, old_values, local_old)
+            new_break = self._trace_aggregation(kpi_id, n, new_values, local_new)
+
+            old_child = {r['id']: r for r in old_break.get('children', [])}
+            new_child = {r['id']: r for r in new_break.get('children', [])}
+            child_rows = []
+            for cid in dict.fromkeys(list(old_child) + list(new_child)):
+                ro, rn = old_child.get(cid, {}), new_child.get(cid, {})
+                child_rows.append({
+                    'id': cid,
+                    'name': rn.get('name', ro.get('name', cid)),
+                    'weight': float(rn.get('weight', ro.get('weight', 0.0)) or 0.0),
+                    'relation': rn.get('relation', ro.get('relation', 'linear')),
+                    'value_before': float(ro.get('value', 0.0) or 0.0),
+                    'value_after': float(rn.get('value', 0.0) or 0.0),
+                    'term_before': ro.get('term', 0.0),
+                    'term_after': rn.get('term', 0.0),
+                    'inhibitory': bool(rn.get('inhibitory', ro.get('inhibitory', False))),
+                })
+
+            try:
+                distance = int(nx.shortest_path_length(self.G, n, kpi_id))
+            except Exception:
+                distance = 0
+            non_kpi_preds = [p for p in self.G.predecessors(n)
+                             if str(self.G.nodes[p].get('type', '')).upper() != 'KPI']
+            role = 'KPI' if is_kpi else (f"{typ} (конечная)" if not non_kpi_preds else f"{typ} (составная)")
+            is_ms = (not is_kpi) and self._is_milestone_type(typ)
+
+            # Подробности временного члена листа для подстановки чисел в интерфейсе.
+            time_meta = {
+                'time_base_before': time_old, 'time_base_after': time_new,
+                'late_penalty_before': 0.0, 'late_penalty_after': 0.0,
+                'relative_deviation_before': 0.0, 'relative_deviation_after': 0.0,
+                'milestone_delay_before': 0, 'milestone_delay_after': 0,
+                'milestone_ref_days_before': 0.0, 'milestone_ref_days_after': 0.0,
+            }
+            if not is_kpi and not non_kpi_preds:
+                beta = float(self.config.beta); sig_k = float(self.config.sigmoid_k)
+                if is_ms:
+                    ref_old = float(_ancestor_ref_for_state(n, True))
+                    ref_new = float(_ancestor_ref_for_state(n, False))
+                    plan_end = a.get('T_plan_end') or old_st.get('T_end')
+                    try:
+                        delay_old = (self._pdate(old_st.get('T_end')) - self._pdate(plan_end)).days
+                    except Exception:
+                        delay_old = 0
+                    try:
+                        delay_new = (self._pdate(new_st.get('T_end')) - self._pdate(plan_end)).days
+                    except Exception:
+                        delay_new = 0
+                    if not self.config.time_bonus_enabled:
+                        delay_old = max(0, delay_old); delay_new = max(0, delay_new)
+                    time_meta.update({
+                        'time_base_before': beta * stable_sigmoid(-sig_k * (float(delay_old) / max(1.0, ref_old))),
+                        'time_base_after': beta * stable_sigmoid(-sig_k * (float(delay_new) / max(1.0, ref_new))),
+                        'milestone_delay_before': int(delay_old), 'milestone_delay_after': int(delay_new),
+                        'milestone_ref_days_before': ref_old, 'milestone_ref_days_after': ref_new,
+                    })
+                else:
+                    t_opt = max(1.0, float(a.get('T_opt', dur_old or 1) or 1))
+                    dd_old = float(dur_old); dd_new = float(dur_new)
+                    if not self.config.time_bonus_enabled:
+                        dd_old = max(dd_old, t_opt); dd_new = max(dd_new, t_opt)
+                    rel_old = dd_old / t_opt - 1.0; rel_new = dd_new / t_opt - 1.0
+                    base_old = beta * stable_sigmoid(-sig_k * rel_old)
+                    base_new = beta * stable_sigmoid(-sig_k * rel_new)
+                    time_meta.update({
+                        'time_base_before': base_old, 'time_base_after': base_new,
+                        'late_penalty_before': max(0.0, base_old - time_old),
+                        'late_penalty_after': max(0.0, base_new - time_new),
+                        'relative_deviation_before': rel_old, 'relative_deviation_after': rel_new,
+                    })
+            entities.append({
+                'id': n, 'name': str(a.get('name', n)), 'type': typ, 'role': role,
+                'distance_to_kpi': distance, 'selected': n == entity_id,
+                'is_leaf': (not is_kpi and not non_kpi_preds), 'is_milestone': bool(is_ms),
+                'F_nominal_before': f_nom_old, 'F_nominal_after': f_nom_new,
+                'F_real_before': f_real_old, 'F_real_after': f_real_new,
+                'start_before': old_st.get('T_start'), 'start_after': new_st.get('T_start'),
+                'end_before': old_st.get('T_end'), 'end_after': new_st.get('T_end'),
+                'duration_before': dur_old, 'duration_after': dur_new,
+                'T_opt': float(a.get('T_opt', dur_old or 1) or 1),
+                'budget_component_before': budget_old, 'budget_component_after': budget_new,
+                'time_component_before': time_old, 'time_component_after': time_new,
+                'local_before': local_old, 'local_after': local_new,
+                'agg_before': agg_old, 'agg_after': agg_new,
+                'aggregation_before': old_break, 'aggregation_after': new_break,
+                'children': child_rows,
+                **time_meta,
+            })
+
+        # Сначала наиболее глубокие работы, затем родители, в конце KPI — так видно весь путь.
+        entities.sort(key=lambda r: (-r['distance_to_kpi'], r['role'] == 'KPI', r['id']))
+        leaves = [r for r in entities if r['is_leaf']]
+        parents = [r for r in entities if r['role'] == 'родитель/агрегатор']
+        _selected_leaves = self._leaf_descendants(entity_id)
+        if not _selected_leaves and str(self.G.nodes[entity_id].get('type', '')).upper() != 'KPI':
+            _selected_leaves = [entity_id]
+        _selected_sum_before = sum(float(snapshot.get(_l, {}).get('local_value',
+                                                                  self.G.nodes[_l].get('local_value', 0.0)) or 0.0)
+                                    for _l in _selected_leaves)
+        _selected_sum_after = sum(float(self.G.nodes[_l].get('local_value', 0.0) or 0.0)
+                                   for _l in _selected_leaves)
+        return {
+            'kpi_id': kpi_id,
+            'kpi_name': str(self.G.nodes[kpi_id].get('name', kpi_id)),
+            'entity_id': entity_id,
+            'entities': entities,
+            'changed_count': len(entities),
+            'leaf_count': len(leaves),
+            'parent_count': len(parents),
+            'sum_leaf_local_before': sum(r['local_before'] for r in leaves),
+            'sum_leaf_local_after': sum(r['local_after'] for r in leaves),
+            'selected_leaf_count': len(_selected_leaves),
+            'selected_sum_leaf_local_before': _selected_sum_before,
+            'selected_sum_leaf_local_after': _selected_sum_after,
+            'alpha': alpha, 'beta': float(self.config.beta),
+            'lambda_eff': lam_eff, 'sigmoid_k': float(self.config.sigmoid_k),
+            'forecast_mode': str(getattr(self.config, 'forecast_mode', 'value')),
+            'calibration': self.get_kpi_calibration(kpi_id),
+        }
+
     def _is_financial_leaf(self, leaf: str) -> bool:
         a = self.G.nodes[leaf]
         if bool(a.get('is_financial', False)):
@@ -3563,7 +4116,7 @@ class ProjectMixer:
                    for v in fin.values() if isinstance(v, dict)
                    for s in ('base', 'req_extra', 'add'))
 
-    def mix(self, entity_id: str, new_F: float, new_start: str, new_end: str, project: bool = True, new_finances: dict = None, rho_req: float = 1.0, rho_add: float = 0.0) -> Dict[str, Dict[str, Any]]:
+    def mix(self, entity_id: str, new_F: float, new_start: str, new_end: str, project: bool = True, new_finances: dict = None, rho_req: float = 1.0, rho_add: float = 0.0, include_trace: bool = False) -> Dict[str, Dict[str, Any]]:
         kpi_nodes = self.kpi_ids
         win_old = (self.G.nodes[entity_id].get('T_start'), self.G.nodes[entity_id].get('T_end'))
         shares = {kpi: self._entity_kpi_share(entity_id, kpi) for kpi in kpi_nodes} if project else {}
@@ -3602,31 +4155,25 @@ class ProjectMixer:
                 'is_financial': self.G.nodes[nid].get('is_financial', False)
             }
 
-        # КАНОНИЧЕСКАЯ БАЗА для сравнения. Правка финансов узла очищает ролл-апы предков и
-        # перераспределяет деньги — это меняет режим распределения. Если снять «было» из старого
-        # (нетронутого) режима, а «стало» из нового, получим ФАНТОМНОЕ изменение KPI даже когда
-        # деньги/сроки не менялись (сосед-лист терял распределённую от родителя долю). Поэтому
-        # «было» снимаем ИЗ ТОГО ЖЕ конвейера: прогоняем ТЕКУЩИЙ источник узла через очистку
-        # ролл-апов + перераспределение, и только затем фиксируем old_kpis. Тогда «ничего не
-        # меняли» → old == new → m = 1.0 → прогноз не дёргается.
-        if new_finances is not None:
-            # База = то, что РЕАЛЬНО показывает матрица узла (его эффективные деньги — свои
-            # плюс распределённые от родителя). Прогоняем эту базу через тот же конвейер, что и
-            # правку, и только затем снимаем old_kpis. Тогда «стало == матрице» ⇒ pct = 0.
-            _is_leaf_e = self.G.in_degree(entity_id) == 0
-            if _is_leaf_e:
-                _base_src = self._parse_finances(
-                    self.G.nodes[entity_id].get('finances_eff',
-                                                 self.G.nodes[entity_id].get('finances', {})))
-                self.G.nodes[entity_id]['finances'] = copy.deepcopy(_base_src)
-            self._clear_rollup_sources(entity_id)
-            self._compute_effective_finances()
-            self._recompute_leaf_values()
-            self._recompute_parent_budgets()
-            self._propagate_all_kpis()
-            old_kpis = {kpi: self._kpi_value(kpi) for kpi in kpi_nodes}
-        else:
-            old_kpis = {kpi: self._kpi_value(kpi) for kpi in kpi_nodes}
+        # «Было» всегда снимаем из реально утверждённого текущего состояния БЕЗ мутаций.
+        # Раньше для любого new_finances здесь очищались промежуточные финансовые цели, поэтому
+        # даже открытие живого прогноза с нулевыми ползунками меняло распределение денег детей.
+        old_kpis = {kpi: self._kpi_value(kpi) for kpi in kpi_nodes}
+        # Для вкладки «Формулы с числами» сохраняем значения КАЖДОГО узла до мутации.
+        # Обычные горячие вызовы mix() (живой прогноз, чувствительность) не платят за трассировку.
+        _trace_old_values = {}
+        if include_trace:
+            if not getattr(self, '_kpi_sub_order', None):
+                self._build_propagation_cache()
+            for _kpi in kpi_nodes:
+                _nodes = self._kpi_sub_order.get(_kpi, [])
+                _trace_old_values[_kpi] = {
+                    _n: float(self.G.nodes[_n].get('agg_by_kpi', {}).get(_kpi, 0.0) or 0.0)
+                    for _n in _nodes
+                }
+        _current_finances = self.display_finances(entity_id) if new_finances is not None else {}
+        _finances_changed = (new_finances is not None and
+                             not self._finances_match(new_finances, _current_finances))
 
         try:
             self.G.nodes[entity_id]['rho_req'] = rho_req
@@ -3641,15 +4188,19 @@ class ProjectMixer:
                         self.G.nodes[child]['rho_add'] = rho_add
 
             if new_finances is not None:
-                self.G.nodes[entity_id]['finances'] = copy.deepcopy(new_finances)
-                # ввод денег в нефинансовую сущность автоматически делает её финансовой
-                if any(float(v.get(st_, 0.0) or 0.0) > 1e-9 for v in (new_finances or {}).values()
-                       if isinstance(v, dict) for st_ in ('base', 'req_extra', 'add')):
-                    self.G.nodes[entity_id]['is_financial'] = True
-                self._clear_rollup_sources(entity_id)  # предпросмотр: снапшот восстановит в finally
+                if _finances_changed:
+                    if is_leaf:
+                        self.G.nodes[entity_id]['finances'] = copy.deepcopy(new_finances)
+                        if any(float(v.get(st_, 0.0) or 0.0) > 1e-9 for v in (new_finances or {}).values()
+                               if isinstance(v, dict) for st_ in ('base', 'req_extra', 'add')):
+                            self.G.nodes[entity_id]['is_financial'] = True
+                        self._clear_rollup_sources(entity_id)  # предпросмотр: снапшот восстановит в finally
+                    else:
+                        # Для родителя меняем агрегат, сохраняя текущее распределение по работам.
+                        self._apply_parent_finances_preserving_distribution(entity_id, new_finances)
                 f_eff, f_real, last_year = self._evaluate_node_finances(new_finances, rho_req, rho_add)
-                new_F = f_eff 
-                if is_leaf:
+                new_F = f_eff
+                if is_leaf and _finances_changed:
                     # согласовать eff остальных листьев с очисткой ролл-апов и новой правкой
                     self._compute_effective_finances()
                     self._recompute_leaf_values()
@@ -3678,7 +4229,8 @@ class ProjectMixer:
                     # ФИНАНСОВЫЙ сценарий на родителе: обновляем источник и пересобираем
                     # эффективные финансы листьев + их ценность ТОЙ ЖЕ логикой, что и на базе
                     # (консистентно, симметрично, с учётом rho). Даёт корректный знак и величину.
-                    self.G.nodes[entity_id]['finances'] = copy.deepcopy(new_finances)
+                    # Источник родителя здесь НЕ создаём: при реальной правке агрегат уже
+                    # материализован в листьях, при no-op источники остаются нетронутыми.
                     self._compute_effective_finances()
                     self._recompute_leaf_values()
                     self._recompute_parent_budgets()
@@ -3702,7 +4254,9 @@ class ProjectMixer:
 
                 self.G.nodes[entity_id].update({'F': float(new_F), 'T_start': new_start, 'T_end': new_end})
                 self.G.nodes[entity_id]['local_value'] = 0.0
-                self._apply_parent_window_to_descendants(entity_id, win_old, (new_start, new_end))
+                # Финансовый сценарий без изменения окна не должен повторно трогать даты детей.
+                if (str(new_start), str(new_end)) != (str(win_old[0]), str(win_old[1])):
+                    self._apply_parent_window_to_descendants(entity_id, win_old, (new_start, new_end))
 
             self._propagate_all_kpis()
 
@@ -3769,6 +4323,10 @@ class ProjectMixer:
                     'periods': periods_out, 'annual': annual,
                     'quarters': quarters,
                 }
+                if include_trace:
+                    output[kpi]['trace'] = self._build_scenario_trace(
+                        kpi, entity_id, snapshot, _trace_old_values.get(kpi, {})
+                    )
             return output
 
         finally:
@@ -3793,18 +4351,21 @@ class ProjectMixer:
                     self.G.nodes[child]['rho_add'] = rho_add
 
         if new_finances is not None:
-            # НЕ трогаем распределение, если деньги фактически не изменились (повторное применение
-            # того же профиля): иначе очистка ролл-апов превратила бы распределённые от родителя
-            # деньги в собственные и обнулила бы соседей. Меняем источник/чистим ролл-апы только
-            # при реальной правке денег.
-            _eff_now = self.G.nodes[entity_id].get('finances_eff', self.G.nodes[entity_id].get('finances', {}))
+            # Сравниваем с ТЕМ, ЧТО ВИДИТ пользователь. У родителя finances/finances_eff часто
+            # пусты, хотя display_finances() содержит сумму детей; прежняя проверка поэтому
+            # считала нажатие «Утвердить» реальной правкой даже при полностью нулевых ползунках.
+            _eff_now = self.display_finances(entity_id)
             _real_change = not self._finances_match(new_finances, _eff_now)
             if _real_change:
-                self.G.nodes[entity_id]['finances'] = copy.deepcopy(new_finances)
-                if any(float(v.get(st_, 0.0) or 0.0) > 1e-9 for v in (new_finances or {}).values()
-                       if isinstance(v, dict) for st_ in ('base', 'req_extra', 'add')):
-                    self.G.nodes[entity_id]['is_financial'] = True
-                self._clear_rollup_sources(entity_id)  # старые ролл-апы предков/промежуточных устарели
+                if is_leaf:
+                    self.G.nodes[entity_id]['finances'] = copy.deepcopy(new_finances)
+                    if any(float(v.get(st_, 0.0) or 0.0) > 1e-9 for v in (new_finances or {}).values()
+                           if isinstance(v, dict) for st_ in ('base', 'req_extra', 'add')):
+                        self.G.nodes[entity_id]['is_financial'] = True
+                    self._clear_rollup_sources(entity_id)
+                else:
+                    # Изменение агрегата родителя материализуем в листьях, сохраняя их доли.
+                    self._apply_parent_finances_preserving_distribution(entity_id, new_finances)
             f_eff, f_real, last_year = self._evaluate_node_finances(new_finances, rho_req, rho_add)
             new_F = f_eff
         else:
@@ -3855,7 +4416,8 @@ class ProjectMixer:
 
             self.G.nodes[entity_id].update({'F': float(new_F), 'T_start': new_start, 'T_end': new_end})
             self.G.nodes[entity_id]['local_value'] = 0.0
-            self._apply_parent_window_to_descendants(entity_id, win_old_parent, (new_start, new_end))
+            if (str(new_start), str(new_end)) != (str(win_old_parent[0]), str(win_old_parent[1])):
+                self._apply_parent_window_to_descendants(entity_id, win_old_parent, (new_start, new_end))
 
         # Каскад срыва срока по зависимостям предшествования (если заданы).
         self._precedence_cascade(entity_id)

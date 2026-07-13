@@ -1251,7 +1251,7 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
                 st.session_state[_skey] = int(midi_sync.clamp(round(_new), _spec.minimum, _spec.maximum))
 
     # --- 2. CHANNELS 1-4 (MAIN CONSOLE) ---
-    st.markdown('<div class="mx-console-h">🎛️ M-Vave Console (Основные каналы 1-4)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="mx-console-h">🎛️ Основные параметры</div>', unsafe_allow_html=True)
     channels = st.columns(4) # <--- Уменьшили до 4 колонок
 
     def draw_channel(col, label, val_key, min_v, max_v, def_v, step, fmt_str, unit):
@@ -1266,15 +1266,15 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
             st.markdown(f'<div class="ch-val">{fmt_str.format(val)}{unit}</div></div>', unsafe_allow_html=True)
             return val
 
-    base_pct = draw_channel(channels[0], "1: БАЗА", "ch_base", 0, 100, 100, 1, "{}", "%") / 100.0
-    rho_req  = draw_channel(channels[1], "2: ПОТРЕБ", "ch_req", 0, 100, def_rho_req, 1, "{}", "%") / 100.0
-    rho_add  = draw_channel(channels[2], "3: ДОП", "ch_add", 0, 100, def_rho_add, 1, "{}", "%") / 100.0
-    shift_m  = draw_channel(channels[3], "4: СДВИГ", "ch_shift", -12, 24, 0, 1, "{:+d}", "м")
+    base_pct = draw_channel(channels[0], "1: Базовое финансирование", "ch_base", 0, 100, 100, 1, "{}", "%") / 100.0
+    rho_req  = draw_channel(channels[1], "2: Потребное финансирование", "ch_req", 0, 100, def_rho_req, 1, "{}", "%") / 100.0
+    rho_add  = draw_channel(channels[2], "3: Доп финансирование", "ch_add", 0, 100, def_rho_add, 1, "{}", "%") / 100.0
+    shift_m  = draw_channel(channels[3], "4: Срок", "ch_shift", -24, 48, 0, 1, "{:+d}", "м")
 
     st.divider()
 
     # --- 3. CHANNELS 5-6 & DYNAMIC GRAPH ---
-    st.markdown('<div class="mx-console-h">🔄 Перераспределение и Живой прогноз</div>', unsafe_allow_html=True)
+    st.markdown('<div class="mx-console-h">🔄 Перераспределение финансирования</div>', unsafe_allow_html=True)
 
     cfg = st.session_state.get('custom_config')
     alpha = float(getattr(cfg, 'alpha', 1.0))
@@ -1443,7 +1443,7 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
     with col_sliders:
         if active_years:
             for y_str in active_years:
-                st.markdown(f"**Перенос для {y_str} года:**")
+                st.markdown(f"**{y_str} год:**")
 
                 key_req = f"ch_trans_req_{selected_entity}_{y_str}"
                 key_add = f"ch_trans_add_{selected_entity}_{y_str}"
@@ -1453,12 +1453,12 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
                     pass
 
                 val_req = st.slider(
-                    f"Канал 7 · Потребность → База, % ({y_str})", 0, 100, key=key_req,
+                    f"Потребность → База, %)", 0, 100, key=key_req,
                     on_change=_force_rerun,
                     help="Какую долю запрошенной потребности этого года считать переведённой "
                          "в базу (гарантированные средства).")
                 val_add = st.slider(
-                    f"Канал 8 · Доп. потребность → База, % ({y_str})", 0, 100, key=key_add,
+                    f"Доп. потребность → База, %", 0, 100, key=key_add,
                     on_change=_force_rerun,
                     help="Какую долю дополнительной потребности этого года считать переведённой в базу.")
 
@@ -1482,7 +1482,7 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
         fig_bars.add_trace(go.Bar(x=plot_years, y=plot_base, name="База", marker_color="#36D399" if _dk else "#0E8F5E"))
         fig_bars.add_trace(go.Bar(x=plot_years, y=plot_req, name="Потребн.", marker_color="#E0A24A" if _dk else "#F5A623"))
         fig_bars.add_trace(go.Bar(x=plot_years, y=plot_add, name="Доп.", marker_color="#FF6B81" if _dk else "#D8425A"))
-        fig_bars.add_trace(go.Scatter(x=plot_years, y=plot_feff, name="F_eff", mode="lines+markers",
+        fig_bars.add_trace(go.Scatter(x=plot_years, y=plot_feff, name="Бюджет", mode="lines+markers",
                                       line=dict(color="#1B4DFF", width=3, dash='dot'), marker=dict(size=8)))
 
         fig_bars.update_layout(
@@ -2091,6 +2091,43 @@ def page_mixer():
     }
     /* Метрики в стиле дашборда */
     [data-testid="stMetricValue"] { font-size: 1.2rem; }
+    /* Контейнер для горизонтального скролла карточек KPI */
+.mx-kpi-row {
+  display: flex;
+  flex-wrap: nowrap;      /* Строго запрещаем перенос на новую строку */
+  overflow-x: auto;       /* Включаем горизонтальный скролл */
+  gap: 16px;              /* Расстояние между карточками */
+  padding-bottom: 12px;   /* Отступ снизу, чтобы скроллбар не перекрывал контент */
+  margin-top: 8px;
+  scrollbar-width: thin;  /* Тонкий скроллбар для Firefox */
+}
+
+/* Контейнер для сетки KPI (по 2 в ряд) */
+.mx-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Две колонки равной ширины */
+  gap: 16px;                             /* Отступы между карточками */
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+/* На мобильных и узких экранах переключаем на 1 колонку */
+@media (max-width: 800px) {
+  .mx-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Отключаем обрезание текста (...) для названий */
+.mx-kpi-grid .mx-kpi .name {
+  display: block !important;
+  -webkit-line-clamp: unset !important; 
+  overflow: visible !important;
+  height: auto;
+  min-height: auto;
+  font-size: 1.05rem; 
+  margin-bottom: 12px;
+}
     </style>
     """, unsafe_allow_html=True)
     apply_theme()  # #9: тёмная тема
@@ -2136,11 +2173,6 @@ def page_mixer():
         st.divider()
 
     st.markdown(f"# 🎛️ {ctx.title}")
-    st.markdown(
-        '<div class="mx-sub">Что произойдёт с годовыми KPI, если изменить бюджет или сроки задачи. '
-        'Выберите задачу, сдвиньте параметры — увидите прогноз ещё до утверждения.</div>',
-        unsafe_allow_html=True,
-    )
 
     # ======================================================================
     # БОКОВАЯ ПАНЕЛЬ — только КОНТЕКСТ проекта и допущения сценария.
@@ -2278,11 +2310,12 @@ def page_mixer():
     # ======================================================================
     # ВЕРХНЯЯ ПОЛОСА — ИТОГ ПО KPI
     # ======================================================================
-    section("Годовые показатели", "верхнеуровневый итог по каждому KPI")
+    section("Целевые показатели")
     if not kpi_ids:
-        st.info("В данных нет ни одного KPI — проверьте файл плановых показателей.")
+        st.info("В данных нет ни одного целевого показателя — проверьте файл плановых показателей.")
     else:
-        cols = st.columns(min(len(kpi_ids), 4))
+        # СОБИРАЕМ HTML ВСЕХ КАРТОЧЕК В СПИСОК
+        cards_html = []
         for i, k_id in enumerate(kpi_ids):
             node = engine.G.nodes[k_id]
             base_year, forecast_year, pct = kpi_year_values(k_id)
@@ -2293,61 +2326,54 @@ def page_mixer():
                 per = []
             years = sorted({int(p['year']) for p in per}) if per else []
             yr_lbl = str(years[0]) if years else ""
-            with cols[i % len(cols)]:
-                trend = "up" if (sim and pct > CHANGE_THRESHOLD) else ("down" if (sim and pct < -CHANGE_THRESHOLD) else "")
-                if sim:
-                    delta_abs = forecast_year - base_year
-                    sign = "+" if delta_abs >= 0 else "−"
-                    body = (
-                        f'<div class="row"><span class="big">{fmt(forecast_year)}</span>{pct_badge(pct)}</div>'
-                        f'<div class="dlt">{sign}{fmt(abs(delta_abs))} к плану</div>'
-                        f'{meter_html(base_year, forecast_year)}'
-                    )
-                    lbl = f"Прогноз{(' · ' + yr_lbl) if yr_lbl else ' (год)'}"
-                else:
-                    body = (f'<div class="row"><span class="big">{fmt(base_year)}</span></div>'
-                            f'<div class="plan">сценарий не запущен</div>')
-                    lbl = f"План{(' · ' + yr_lbl) if yr_lbl else ' (год)'}"
-                extra = ""
-                if len(years) > 1:
-                    if sim and k_id in sim and sim[k_id].get('annual'):
-                        ann = {int(y): v for y, v in sim[k_id]['annual'].items()}
-                    else:
-                        ann = engine._kpi_annual(k_id)
-                    yr_rows = ""
-                    for y in years:
-                        a = ann.get(y, {})
-                        pl = safe_float(a.get('plan', 0.0))
-                        fc = safe_float(a.get('forecast', pl))
-                        cls = 'pos' if (sim and fc > pl + 1e-9) else ('neg' if (sim and fc < pl - 1e-9) else '')
-                        arrow = f'{fmt(pl)} → <b class="{cls}">{fmt(fc)}</b>' if sim else f'<b>{fmt(pl)}</b>'
-                        yr_rows += f'<div class="yr"><span class="y">{y}</span><span class="pf">{arrow}</span></div>'
-                    extra = f'<div class="mx-years">{yr_rows}</div>'
-                if sim:
-                    conf = float(engine.get_kpi_calibration(k_id).get('confidence', 1.0))
-                    if conf < 0.999:
-                        band = (1.0 - conf) * abs(forecast_year - base_year)
-                        if band > 0:
-                            extra += (f'<div class="plan">коридор: {fmt(forecast_year - band)} … '
-                                      f'{fmt(forecast_year + band)} (уверенность {int(conf*100)}%)</div>')
-                st.markdown(
-                    f'<div class="mx-card mx-kpi {trend}"><div class="lbl">{lbl}</div>'
-                    f'<div class="name">{node.get("name","")}</div>{body}{extra}</div>',
-                    unsafe_allow_html=True,
+            
+            trend = "up" if (sim and pct > CHANGE_THRESHOLD) else ("down" if (sim and pct < -CHANGE_THRESHOLD) else "")
+            if sim:
+                delta_abs = forecast_year - base_year
+                sign = "+" if delta_abs >= 0 else "−"
+                body = (
+                    f'<div class="row"><span class="big">{fmt(forecast_year)}</span>{pct_badge(pct)}</div>'
+                    f'<div class="dlt">{sign}{fmt(abs(delta_abs))} к плану</div>'
+                    f'{meter_html(base_year, forecast_year)}'
                 )
+                lbl = f"Прогноз{(' · ' + yr_lbl) if yr_lbl else ' (год)'}"
+            else:
+                body = (f'<div class="row"><span class="big">{fmt(base_year)}</span></div>')
+                
+            extra = ""
+            if len(years) > 1:
+                if sim and k_id in sim and sim[k_id].get('annual'):
+                    ann = {int(y): v for y, v in sim[k_id]['annual'].items()}
+                else:
+                    ann = engine._kpi_annual(k_id)
+                yr_rows = ""
+                for y in years:
+                    a = ann.get(y, {})
+                    pl = safe_float(a.get('plan', 0.0))
+                    fc = safe_float(a.get('forecast', pl))
+                    cls = 'pos' if (sim and fc > pl + 1e-9) else ('neg' if (sim and fc < pl - 1e-9) else '')
+                    arrow = f'{fmt(pl)} → <b class="{cls}">{fmt(fc)}</b>' if sim else f'<b>{fmt(pl)}</b>'
+                    yr_rows += f'<div class="yr"><span class="y">{y}</span><span class="pf">{arrow}</span></div>'
+                extra = f'<div class="mx-years">{yr_rows}</div>'
+            if sim:
+                conf = float(engine.get_kpi_calibration(k_id).get('confidence', 1.0))
+                if conf < 0.999:
+                    band = (1.0 - conf) * abs(forecast_year - base_year)
+                    if band > 0:
+                        extra += (f'<div class="plan">коридор: {fmt(forecast_year - band)} … '
+                                  f'{fmt(forecast_year + band)} (уверенность {int(conf*100)}%)</div>')
+            
+            # Собираем карточку
+            cards_html.append(
+                f'<div class="mx-card mx-kpi {trend}"><div class="lbl"></div>'
+                f'<div class="name">{node.get("name","")}</div>{body}{extra}</div>'
+            )
 
-    ribbon = [chip(f"{len(kpi_ids)} KPI", "info")]
-    if engine.budget_discrepancies:
-        ribbon.append(chip(f"{len(engine.budget_discrepancies)} расхождени(е/я) бюджета", "warn"))
-    if engine.schedule_violations:
-        total_v = sum(len(v) for v in engine.schedule_violations.values())
-        ribbon.append(chip(f"{total_v} календарн. нестыковк(а/и)", "bad"))
-    if not engine.budget_discrepancies and not engine.schedule_violations:
-        ribbon.append(chip("структура согласована", "ok"))
-    st.markdown(f'<div class="mx-ribbon">{"".join(ribbon)}</div>', unsafe_allow_html=True)
-    if engine.budget_discrepancies or engine.schedule_violations:
-        st.caption("Подробности по расхождениям и нестыковкам — на вкладке «Чувствительность и бюджет»; "
-                   "проблемные строки бюджета подсвечены в план-графике.")
+        # ВЫВОДИМ КАРТОЧКИ СЕТКОЙ (ПО 2 В РЯД)
+        st.markdown(
+            f'<div class="mx-kpi-grid">{"".join(cards_html)}</div>',
+            unsafe_allow_html=True,
+        )
 
     st.divider()
 
@@ -2517,8 +2543,7 @@ def page_mixer():
                 if chosen in engine.G.nodes and chosen != st.session_state.selected_entity_id:
                     st.session_state.selected_entity_id = chosen
                     st.rerun()
-            st.caption(f"Клик по строке открывает микшер задачи · сортировка по столбцам · бюджет в «{unit}». "
-                       "Кнопка ниже — скачать; разворот на весь экран — по наведению на правый верх таблицы.")
+            
             
             buf = io.BytesIO()
             with pd.ExcelWriter(buf, engine='xlsxwriter') as w:
@@ -2538,10 +2563,12 @@ def page_mixer():
                 kids = list(engine.G.predecessors(selected_entity))
                 real_kids = [c for c in kids if str(engine.G.nodes[c].get('type', '')).upper() != 'KPI']
                 is_leaf = len(real_kids) == 0
-                tag = ('<span class="mx-pill mx-tag-leaf">листовая</span>' if is_leaf
-                       else '<span class="mx-pill mx-tag-parent">родительская</span>')
+                cur_type_lower = str(cur_type).lower() if cur_type else "элемент"
+                tag_txt = f"{cur_type}" if is_leaf else f"{cur_type}"
+                tag_cls = "mx-tag-leaf" if is_leaf else "mx-tag-parent"
+                tag = f'<span class="mx-pill {tag_cls}">{tag_txt}</span>'
 
-                section("Микшер задачи")
+                section(f"Микшер: {cur_type_lower}")
                 head_l, head_r = st.columns([5, 1])
                 head_l.markdown(f'**[{selected_entity}] {cur_name}** {tag}', unsafe_allow_html=True)
                 if head_r.button("Закрыть", use_container_width=True):
@@ -2556,9 +2583,9 @@ def page_mixer():
 
                 with st.container(border=True):
                     if not is_leaf:
-                        st.caption("ℹ️ Это родительская задача: ИЗМЕНЕНИЕ бюджета (Δ) распределяется "
-                                   "между непосредственными подзадачами ПРОПОРЦИОНАЛЬНО ВЕСУ их влияния; "
-                                   "текущие бюджеты подзадач сохраняются (при неизменной сумме ничего не двигается).")
+                        st.caption(f"ℹ️ Это {cur_type}: ИЗМЕНЕНИЕ бюджета (Δ) распределяется "
+                                   "между вложенными элементами ПРОПОРЦИОНАЛЬНО ВЕСУ их влияния; "
+                                   "текущие бюджеты вложенных элементов сохраняются (при неизменной сумме ничего не двигается).")
 
                     infl = engine.task_kpi_influences(selected_entity)
                     if len(infl) > 1:
@@ -2637,10 +2664,6 @@ def page_mixer():
                         for y in range(start_y, end_y + 1):
                             st.session_state[f"ch_trans_req_{selected_entity}_{y}"] = 0
                             st.session_state[f"ch_trans_add_{selected_entity}_{y}"] = 0
-
-                    st.markdown('<div class="mx-h"><span class="t">Перераспределение средств (Каналы 7 и 8)</span></div>', unsafe_allow_html=True)
-                    st.caption("Выберите годы для настройки переноса. Ползунки и график появятся на пульте ниже.")
-                    
                     years_list = [r["Год"] for r in st.session_state[state_key]]
                     chk_cols = st.columns(len(years_list))
                     active_years = []
@@ -2885,7 +2908,7 @@ def page_mixer():
                     'Нажмите на строку выше — откроется микшер: деньги по годам, сроки и вероятности '
                     'финансирования.</div></div>', unsafe_allow_html=True)
         with col_proj:
-            section("Прогноз по KPI", "трёхдатная поквартальная логика")
+            section("Прогноз")
             st.caption("Эффект — с квартала завершения работы и далее.")
             st.markdown(
                 '<div class="mx-legend">'
@@ -2893,7 +2916,6 @@ def page_mixer():
                 '<span><i style="background:var(--mx-accent)"></i>прогноз</span>'
                 '<span><i style="background:var(--mx-pos-bg);border:1px solid var(--mx-pos)"></i>рост</span>'
                 '<span><i style="background:var(--mx-neg-bg);border:1px solid var(--mx-neg)"></i>спад</span>'
-                '<span><i style="background:var(--mx-surface-2);border:1px solid var(--mx-border)"></i>🔒 закрытый квартал (факт)</span>'
                 '</div>', unsafe_allow_html=True)
 
             if not selected_entity:
@@ -2922,21 +2944,6 @@ def page_mixer():
                     _chg = [c for c in dist['children']
                             if c['end_after'] != c['end_before']
                             or _fin_years(c['fin_before']) != _fin_years(c['fin_after'])]
-                    with st.expander(f"👶 Дочерние работы: деньги и сроки — станет после «Утвердить» "
-                                     f"({len(_chg)} измен.)", expanded=bool(_chg)):
-                        if not _chg:
-                            st.caption("У дочерних работ деньги и сроки не меняются.")
-                        else:
-                            st.dataframe(pd.DataFrame([{
-                                '№': c['id'], 'Работа': c['name'][:38],
-                                'Деньги было': _fin_years(c['fin_before']),
-                                'Деньги станет': _fin_years(c['fin_after']),
-                                'Срок был': fmt_date(c['end_before']),
-                                'Срок станет': fmt_date(c['end_after']),
-                            } for c in _chg[:20]]), hide_index=True, use_container_width=True)
-                            st.caption("Это предпросмотр. Значения запишутся в план-график после кнопки "
-                                       "«✅ Утвердить сценарий».")
-
                 affected_set = set()
                 if sim:
                     affected_set = {k for k, v in sim.items() if abs(v.get('pct_change', 0)) > CHANGE_THRESHOLD}
@@ -3219,10 +3226,11 @@ def page_mixer():
                             Vk_old = safe_float(s.get('old')); Vk_new = safe_float(s.get('new'))
                             m_raw = (Vk_new / Vk_old) if Vk_old > 0 else 1.0
 
-                            _kind = "родительская задача" if is_parent else ("веха" if is_ms_w else "работа")
+                            work_type = str(work_node.get('type', 'элемент'))
+                            _kind = f"{work_type}" if is_parent else f"{work_type}"
                             st.markdown(f"**1) Что поменяли** — {_kind} «{work_nm}»:")
                             st.markdown(f"- Бюджет (номинал): {fmt(F_old_nominal)} → {fmt(F_new_nominal)} {_u}")
-                            _real_note = "суммарный по детям" if is_parent else "идёт в ценность"
+                            _real_note = "суммарный" if is_parent else "идёт в ценность"
                             st.markdown(f"- Бюджет (реальный, дисконт. — {_real_note}): "
                                         f"{fmt(F_old_real)} → {fmt(F_new_real)} {_u}")
                             if not is_ms_w:
@@ -3234,29 +3242,28 @@ def page_mixer():
                                 dist = engine.explain_parent_distribution(
                                     work_id, params.get('new_finances') or {},
                                     float(params.get('rho_req', 1.0)), float(params.get('rho_add', 0.0)))
-                                st.markdown(f"**2) Расчёт для РОДИТЕЛЯ** — своей ценности от бюджета у родителя нет. "
-                                            f"Его деньги распределяются между **{dist['n']}** дочерними работами по весам влияния; "
-                                            f"ценность считается по КАЖДОМУ ребёнку и суммируется:")
-                                st.latex(r"V_{\text{ребёнка}} = \alpha\ln(1+\lambda_{\text{эфф}} F_{реальн.}) + \beta\sigma(\dots)"
-                                         r",\qquad V_{\text{родителя}} = \sum_{\text{дети}} V_{\text{ребёнка}}")
-                                st.latex(rf"\sum V_{{\text{{дети}}}}:\ {dist['sumV_before']:.3f}\ \rightarrow\ {dist['sumV_after']:.3f}")
+                                st.markdown(f"**2) Расчёт для {work_type}** — своей ценности от бюджета она не имеет. "
+                                            f"Её деньги распределяются между **{dist['n']}** вложенными элементами по весам влияния; "
+                                            f"ценность считается по КАЖДОМУ вложенному элементу и суммируется:")
+                                st.latex(r"V_{\text{влож.}} = \alpha\ln(1+\lambda_{\text{эфф}} F_{реальн.}) + \beta\sigma(\dots)"
+                                         r",\qquad V_{\text{составн.}} = \sum_{\text{влож.}} V_{\text{влож.}}")
+                                st.latex(rf"\sum V_{{\text{{влож.}}}}:\ {dist['sumV_before']:.3f}\ \rightarrow\ {dist['sumV_after']:.3f}")
                                 _ch = [c for c in dist['children']
                                        if abs(c['V_after'] - c['V_before']) > 1e-6 or abs(c['F_after'] - c['F_before']) > 1e-6]
                                 if _ch:
-                                    st.caption("Дочерние работы, у которых изменились деньги/ценность:")
+                                    st.caption("Вложенные элементы, у которых изменились деньги/ценность:")
                                     st.dataframe(pd.DataFrame([{
                                         '№': c['id'], 'Работа': c['name'][:44],
                                         f'Бюджет было, {_u}': round(c['F_before'], 2),
                                         f'Бюджет стало, {_u}': round(c['F_after'], 2),
                                         'V было': round(c['V_before'], 3), 'V стало': round(c['V_after'], 3),
-                                    } for c in _ch[:12]]), hide_index=True, use_container_width=True)
+                                    } for c in _ch[:]]), hide_index=True, use_container_width=True)
                                 else:
                                     st.caption("Суммарный бюджет детей не изменился — сдвинулось только его "
                                                "распределение по годам/работам (эффект виден в дисконтированной "
                                                "ценности детей и в показателе).")
                             else:
-                                st.markdown("**2) Ценность работы** (вклад в результат) = бюджетный член "
-                                            f"+ временной член ({time_label}):")
+                                st.markdown(f"**2) Ценность конечной сущности («{work_type}»)** (вклад в результат) = бюджетный член ")
                                 st.latex(r"V_{\text{раб}} = \underbrace{\alpha\,\ln(1+\lambda_{\text{эфф}}\cdot F_{реальн.})}_{\text{бюджет}} "
                                          r"+ \underbrace{\beta\cdot\sigma(\dots)}_{\text{срок}}")
                                 st.latex(rf"\text{{было}}:\ \underbrace{{{val_F_old:.3f}}}_{{\text{{бюджет}}}} + "

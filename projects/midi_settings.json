@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "bindings": [
+    null,
+    "pw_1",
+    "pw_2",
+    "pw_3",
+    "pw_4",
+    "pw_5"
+  ],
+  "mode_overrides": {
+    "pw_1": "absolute",
+    "pw_2": "absolute",
+    "pw_3": "absolute",
+    "pw_4": "absolute",
+    "pw_5": "absolute"
+  },
+  "auto_bind": false,
+  "preferred_port": "SMC-Mixer 0"
+}

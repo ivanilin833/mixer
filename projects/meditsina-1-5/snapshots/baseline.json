@@ -1,0 +1,2589 @@
+{
+  "version": 1,
+  "tasks": {
+    "1": {
+      "F": 4872400.0,
+      "T_start": "2025-06-01",
+      "T_end": "2029-10-30",
+      "T_opt": 1612,
+      "T_plan_end": "2029-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 1703400.0,
+          "req_total": 1703400.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 2489000.0,
+          "req_total": 2489000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 680000.0,
+          "req_total": 680000.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1": {
+      "F": 4872400.0,
+      "T_start": "2025-06-01",
+      "T_end": "2029-10-30",
+      "T_opt": 1612,
+      "T_plan_end": "2029-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 1703400.0,
+          "req_total": 1703400.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 2489000.0,
+          "req_total": 2489000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 680000.0,
+          "req_total": 680000.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.1": {
+      "F": 0.0,
+      "T_start": "2025-06-01",
+      "T_end": "2025-12-31",
+      "T_opt": 213,
+      "T_plan_end": "2025-12-31",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.1.1": {
+      "F": 0.0,
+      "T_start": "2025-08-01",
+      "T_end": "2025-08-01",
+      "T_opt": 1,
+      "T_plan_end": "2025-08-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.1.2": {
+      "F": 0.0,
+      "T_start": "2025-10-01",
+      "T_end": "2025-10-01",
+      "T_opt": 1,
+      "T_plan_end": "2025-10-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.1.3": {
+      "F": 0.0,
+      "T_start": "2025-12-31",
+      "T_end": "2025-12-31",
+      "T_opt": 1,
+      "T_plan_end": "2025-12-31",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2": {
+      "F": 593075.5,
+      "T_start": "2025-06-01",
+      "T_end": "2026-12-28",
+      "T_opt": 575,
+      "T_plan_end": "2026-12-28",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 593075.5,
+          "req_total": 593075.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2.1": {
+      "F": 0.0,
+      "T_start": "2025-06-30",
+      "T_end": "2025-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-06-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2.2": {
+      "F": 0.0,
+      "T_start": "2025-09-30",
+      "T_end": "2025-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2.3": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-03-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2.4": {
+      "F": 0.0,
+      "T_start": "2026-03-10",
+      "T_end": "2026-03-10",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2.5": {
+      "F": 118520.91435029337,
+      "T_start": "2026-04-15",
+      "T_end": "2026-04-15",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-15",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2.6": {
+      "F": 474554.58564970666,
+      "T_start": "2026-08-01",
+      "T_end": "2026-08-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-08-01",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 593075.5,
+          "req_total": 593075.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2.7": {
+      "F": 0.0,
+      "T_start": "2026-07-01",
+      "T_end": "2026-07-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-07-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2.8": {
+      "F": 0.0,
+      "T_start": "2026-09-01",
+      "T_end": "2026-09-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.2.9": {
+      "F": 0.0,
+      "T_start": "2026-12-28",
+      "T_end": "2026-12-28",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-28",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.3": {
+      "F": 316290.5,
+      "T_start": "2025-06-01",
+      "T_end": "2026-12-28",
+      "T_opt": 575,
+      "T_plan_end": "2026-12-28",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 316290.5,
+          "req_total": 316290.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.3.1": {
+      "F": 0.0,
+      "T_start": "2025-06-30",
+      "T_end": "2025-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-06-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.3.2": {
+      "F": 0.0,
+      "T_start": "2025-09-30",
+      "T_end": "2025-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.3.3": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-03-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.3.4": {
+      "F": 0.0,
+      "T_start": "2026-03-10",
+      "T_end": "2026-03-10",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.3.5": {
+      "F": 316290.5,
+      "T_start": "2026-06-30",
+      "T_end": "2026-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 316290.5,
+          "req_total": 316290.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.3.6": {
+      "F": 0.0,
+      "T_start": "2026-07-01",
+      "T_end": "2026-07-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-07-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.3.7": {
+      "F": 0.0,
+      "T_start": "2026-09-01",
+      "T_end": "2026-09-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.3.8": {
+      "F": 0.0,
+      "T_start": "2026-12-28",
+      "T_end": "2026-12-28",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-28",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.4": {
+      "F": 0.0,
+      "T_start": "2025-06-01",
+      "T_end": "2026-12-25",
+      "T_opt": 572,
+      "T_plan_end": "2026-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.4.1": {
+      "F": 0.0,
+      "T_start": "2025-09-30",
+      "T_end": "2025-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.4.2": {
+      "F": 0.0,
+      "T_start": "2026-07-01",
+      "T_end": "2026-07-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-07-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.4.3": {
+      "F": 0.0,
+      "T_start": "2028-11-20",
+      "T_end": "2026-09-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.4.4": {
+      "F": 0.0,
+      "T_start": "2026-12-25",
+      "T_end": "2026-12-25",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5": {
+      "F": 106163.0,
+      "T_start": "2025-06-01",
+      "T_end": "2026-12-25",
+      "T_opt": 572,
+      "T_plan_end": "2026-12-25",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 106163.0,
+          "req_total": 106163.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.1": {
+      "F": 0.0,
+      "T_start": "2025-08-30",
+      "T_end": "2025-08-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-08-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.2": {
+      "F": 0.0,
+      "T_start": "2025-09-30",
+      "T_end": "2025-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.3": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-03-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.4": {
+      "F": 0.0,
+      "T_start": "2026-03-10",
+      "T_end": "2026-03-10",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.5": {
+      "F": 56710.44756015042,
+      "T_start": "2026-06-30",
+      "T_end": "2026-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 106163.0,
+          "req_total": 106163.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.6": {
+      "F": 0.0,
+      "T_start": "2026-07-31",
+      "T_end": "2026-07-31",
+      "T_opt": 1,
+      "T_plan_end": "2026-07-31",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.7": {
+      "F": 0.0,
+      "T_start": "2026-09-01",
+      "T_end": "2026-09-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.8": {
+      "F": 49452.552439849576,
+      "T_start": "2026-10-30",
+      "T_end": "2026-10-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.9": {
+      "F": 0.0,
+      "T_start": "2026-11-30",
+      "T_end": "2026-11-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-11-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.5.10": {
+      "F": 0.0,
+      "T_start": "2026-12-25",
+      "T_end": "2026-12-25",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.6": {
+      "F": 163836.0,
+      "T_start": "2025-06-01",
+      "T_end": "2026-12-28",
+      "T_opt": 575,
+      "T_plan_end": "2026-12-28",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 163836.0,
+          "req_total": 163836.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.6.1": {
+      "F": 0.0,
+      "T_start": "2025-06-30",
+      "T_end": "2025-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-06-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.6.2": {
+      "F": 0.0,
+      "T_start": "2025-09-30",
+      "T_end": "2025-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.6.3": {
+      "F": 163836.0,
+      "T_start": "2026-06-30",
+      "T_end": "2026-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 163836.0,
+          "req_total": 163836.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.6.4": {
+      "F": 0.0,
+      "T_start": "2026-03-10",
+      "T_end": "2026-03-10",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.6.5": {
+      "F": 0.0,
+      "T_start": "2026-07-01",
+      "T_end": "2026-07-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-07-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.6.6": {
+      "F": 0.0,
+      "T_start": "2026-09-01",
+      "T_end": "2026-09-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.6.7": {
+      "F": 0.0,
+      "T_start": "2026-12-28",
+      "T_end": "2026-12-28",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-28",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.7": {
+      "F": 204059.50000000003,
+      "T_start": "2025-09-01",
+      "T_end": "2026-12-28",
+      "T_opt": 483,
+      "T_plan_end": "2026-12-28",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 204059.5,
+          "req_total": 204059.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.7.1": {
+      "F": 0.0,
+      "T_start": "2025-09-30",
+      "T_end": "2025-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.7.2": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-03-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.7.3": {
+      "F": 0.0,
+      "T_start": "2026-03-10",
+      "T_end": "2026-03-10",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.7.4": {
+      "F": 204059.50000000003,
+      "T_start": "2026-06-30",
+      "T_end": "2026-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 204059.5,
+          "req_total": 204059.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.7.5": {
+      "F": 0.0,
+      "T_start": "2026-07-31",
+      "T_end": "2026-07-31",
+      "T_opt": 1,
+      "T_plan_end": "2026-07-31",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.7.6": {
+      "F": 0.0,
+      "T_start": "2026-09-01",
+      "T_end": "2026-09-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.7.7": {
+      "F": 0.0,
+      "T_start": "2026-12-28",
+      "T_end": "2026-12-28",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-28",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.8": {
+      "F": 319975.5,
+      "T_start": "2025-09-01",
+      "T_end": "2026-12-28",
+      "T_opt": 483,
+      "T_plan_end": "2026-12-28",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 319975.5,
+          "req_total": 319975.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.8.1": {
+      "F": 0.0,
+      "T_start": "2025-09-30",
+      "T_end": "2025-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.8.2": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-03-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.8.3": {
+      "F": 0.0,
+      "T_start": "2026-03-10",
+      "T_end": "2026-03-10",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.8.4": {
+      "F": 319975.5,
+      "T_start": "2026-06-30",
+      "T_end": "2026-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 319975.5,
+          "req_total": 319975.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.8.5": {
+      "F": 0.0,
+      "T_start": "2026-07-01",
+      "T_end": "2026-07-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-07-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.8.6": {
+      "F": 0.0,
+      "T_start": "2026-09-01",
+      "T_end": "2026-09-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.8.7": {
+      "F": 0.0,
+      "T_start": "2026-12-28",
+      "T_end": "2026-12-28",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-28",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.9": {
+      "F": 0.0,
+      "T_start": "2025-09-01",
+      "T_end": "2027-12-25",
+      "T_opt": 845,
+      "T_plan_end": "2027-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.9.1": {
+      "F": 0.0,
+      "T_start": "2025-09-30",
+      "T_end": "2025-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2025-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.9.2": {
+      "F": 0.0,
+      "T_start": "2026-09-30",
+      "T_end": "2026-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.9.3": {
+      "F": 0.0,
+      "T_start": "2026-10-10",
+      "T_end": "2026-10-10",
+      "T_opt": 1,
+      "T_plan_end": "2026-10-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.9.4": {
+      "F": 0.0,
+      "T_start": "2027-03-30",
+      "T_end": "2027-03-30",
+      "T_opt": 1,
+      "T_plan_end": "2027-03-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.9.5": {
+      "F": 0.0,
+      "T_start": "2027-03-30",
+      "T_end": "2027-03-30",
+      "T_opt": 1,
+      "T_plan_end": "2027-03-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.9.6": {
+      "F": 0.0,
+      "T_start": "2027-09-30",
+      "T_end": "2027-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2027-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.9.7": {
+      "F": 0.0,
+      "T_start": "2027-12-25",
+      "T_end": "2027-12-25",
+      "T_opt": 1,
+      "T_plan_end": "2027-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.10": {
+      "F": 250000.0,
+      "T_start": "2027-01-01",
+      "T_end": "2027-12-25",
+      "T_opt": 358,
+      "T_plan_end": "2027-12-25",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 250000.0,
+          "req_total": 250000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.10.1": {
+      "F": 0.0,
+      "T_start": "2027-01-15",
+      "T_end": "2027-01-15",
+      "T_opt": 1,
+      "T_plan_end": "2027-01-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.10.2": {
+      "F": 0.0,
+      "T_start": "2027-01-25",
+      "T_end": "2027-01-25",
+      "T_opt": 1,
+      "T_plan_end": "2027-01-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.10.3": {
+      "F": 250000.0,
+      "T_start": "2027-03-31",
+      "T_end": "2027-03-31",
+      "T_opt": 1,
+      "T_plan_end": "2027-03-31",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 250000.0,
+          "req_total": 250000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.10.4": {
+      "F": 0.0,
+      "T_start": "2027-12-25",
+      "T_end": "2027-12-25",
+      "T_opt": 1,
+      "T_plan_end": "2027-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.11": {
+      "F": 1210999.9999999998,
+      "T_start": "2027-01-01",
+      "T_end": "2027-12-25",
+      "T_opt": 358,
+      "T_plan_end": "2027-12-25",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 1211000.0,
+          "req_total": 1211000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.11.1": {
+      "F": 0.0,
+      "T_start": "2027-01-15",
+      "T_end": "2027-01-15",
+      "T_opt": 1,
+      "T_plan_end": "2027-01-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.11.2": {
+      "F": 0.0,
+      "T_start": "2027-01-25",
+      "T_end": "2027-01-25",
+      "T_opt": 1,
+      "T_plan_end": "2027-01-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.11.3": {
+      "F": 1210999.9999999998,
+      "T_start": "2027-03-31",
+      "T_end": "2027-03-31",
+      "T_opt": 1,
+      "T_plan_end": "2027-03-31",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 1211000.0,
+          "req_total": 1211000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.11.4": {
+      "F": 0.0,
+      "T_start": "2027-12-25",
+      "T_end": "2027-12-25",
+      "T_opt": 1,
+      "T_plan_end": "2027-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.12": {
+      "F": 325000.0,
+      "T_start": "2027-01-01",
+      "T_end": "2027-12-25",
+      "T_opt": 358,
+      "T_plan_end": "2027-12-25",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 325000.0,
+          "req_total": 325000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.12.1": {
+      "F": 0.0,
+      "T_start": "2027-01-15",
+      "T_end": "2027-01-15",
+      "T_opt": 1,
+      "T_plan_end": "2027-01-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.12.2": {
+      "F": 0.0,
+      "T_start": "2027-01-25",
+      "T_end": "2027-01-25",
+      "T_opt": 1,
+      "T_plan_end": "2027-01-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.12.3": {
+      "F": 325000.0,
+      "T_start": "2027-03-31",
+      "T_end": "2027-03-31",
+      "T_opt": 1,
+      "T_plan_end": "2027-03-31",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 325000.0,
+          "req_total": 325000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.12.4": {
+      "F": 0.0,
+      "T_start": "2027-06-30",
+      "T_end": "2027-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2027-06-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.12.5": {
+      "F": 0.0,
+      "T_start": "2027-12-25",
+      "T_end": "2027-12-25",
+      "T_opt": 1,
+      "T_plan_end": "2027-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.13": {
+      "F": 0.0,
+      "T_start": "2027-01-01",
+      "T_end": "2027-12-25",
+      "T_opt": 358,
+      "T_plan_end": "2027-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.13.1": {
+      "F": 0.0,
+      "T_start": "2027-03-01",
+      "T_end": "2027-03-01",
+      "T_opt": 1,
+      "T_plan_end": "2027-03-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.13.2": {
+      "F": 0.0,
+      "T_start": "2027-03-10",
+      "T_end": "2027-03-10",
+      "T_opt": 1,
+      "T_plan_end": "2027-03-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.13.3": {
+      "F": 0.0,
+      "T_start": "2027-03-01",
+      "T_end": "2027-03-01",
+      "T_opt": 1,
+      "T_plan_end": "2027-03-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.13.4": {
+      "F": 0.0,
+      "T_start": "2027-11-30",
+      "T_end": "2027-11-30",
+      "T_opt": 1,
+      "T_plan_end": "2027-11-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.13.5": {
+      "F": 0.0,
+      "T_start": "2027-12-25",
+      "T_end": "2027-12-25",
+      "T_opt": 1,
+      "T_plan_end": "2027-12-25",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.14": {
+      "F": 1383000.0,
+      "T_start": "2027-01-01",
+      "T_end": "2029-10-30",
+      "T_opt": 1033,
+      "T_plan_end": "2029-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 703000.0,
+          "req_total": 703000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 680000.0,
+          "req_total": 680000.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.14.1": {
+      "F": 873000.0,
+      "T_start": "2027-10-30",
+      "T_end": "2028-12-31",
+      "T_opt": 1,
+      "T_plan_end": "2027-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 703000.0,
+          "req_total": 703000.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.14.2": {
+      "F": 270000.0,
+      "T_start": "2028-10-30",
+      "T_end": "2028-10-30",
+      "T_opt": 1,
+      "T_plan_end": "2028-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 360000.0,
+          "req_total": 360000.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.14.3": {
+      "F": 188174.99999999997,
+      "T_start": "2028-10-30",
+      "T_end": "2028-10-30",
+      "T_opt": 1,
+      "T_plan_end": "2028-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 250900.0,
+          "req_total": 250900.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.14.4": {
+      "F": 51825.0,
+      "T_start": "2028-10-30",
+      "T_end": "2028-10-30",
+      "T_opt": 1,
+      "T_plan_end": "2028-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 69100.0,
+          "req_total": 69100.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.14.5": {
+      "F": 0.0,
+      "T_start": "2029-10-30",
+      "T_end": "2029-10-30",
+      "T_opt": 1,
+      "T_plan_end": "2029-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "1.1.14.6": {
+      "F": 0.0,
+      "T_start": "2029-10-30",
+      "T_end": "2029-10-30",
+      "T_opt": 1,
+      "T_plan_end": "2029-10-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5": {
+      "F": 1370000.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 1370000.0,
+          "req_total": 1370000.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 340000.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.1": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-05-31",
+      "T_opt": 91,
+      "T_plan_end": "2026-05-31",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.1.1": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-04-30",
+      "T_opt": 60,
+      "T_plan_end": "2026-04-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.1.1.1": {
+      "F": 0.0,
+      "T_start": "2026-04-14",
+      "T_end": "2026-04-14",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-14",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.1.1.2": {
+      "F": 0.0,
+      "T_start": "2026-04-30",
+      "T_end": "2026-04-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.1.2": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-05-31",
+      "T_opt": 91,
+      "T_plan_end": "2026-05-31",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.1.2.1": {
+      "F": 0.0,
+      "T_start": "2026-05-31",
+      "T_end": "2026-05-31",
+      "T_opt": 1,
+      "T_plan_end": "2026-05-31",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.1.2.2": {
+      "F": 0.0,
+      "T_start": "2026-05-31",
+      "T_end": "2026-05-31",
+      "T_opt": 1,
+      "T_plan_end": "2026-05-31",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.1": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.1.1": {
+      "F": 0.0,
+      "T_start": "2026-04-14",
+      "T_end": "2026-04-14",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-14",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.1.2": {
+      "F": 0.0,
+      "T_start": "2026-06-30",
+      "T_end": "2026-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.1.3": {
+      "F": 0.0,
+      "T_start": "2026-09-30",
+      "T_end": "2026-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.1.4": {
+      "F": 0.0,
+      "T_start": "2026-12-20",
+      "T_end": "2026-12-20",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.2": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.2.1": {
+      "F": 0.0,
+      "T_start": "2026-04-15",
+      "T_end": "2026-04-15",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.2.2": {
+      "F": 0.0,
+      "T_start": "2026-05-05",
+      "T_end": "2026-05-05",
+      "T_opt": 1,
+      "T_plan_end": "2026-05-05",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.2.3": {
+      "F": 0.0,
+      "T_start": "2026-12-20",
+      "T_end": "2026-12-20",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.2.2.4": {
+      "F": 0.0,
+      "T_start": "2026-12-20",
+      "T_end": "2026-12-20",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-01",
+      "T_opt": 334,
+      "T_plan_end": "2026-12-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.1": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-11-15",
+      "T_opt": 318,
+      "T_plan_end": "2026-11-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.1.1": {
+      "F": 0.0,
+      "T_start": "2026-04-14",
+      "T_end": "2026-04-14",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-14",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.1.2": {
+      "F": 0.0,
+      "T_start": "2026-04-15",
+      "T_end": "2026-04-15",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.1.3": {
+      "F": 0.0,
+      "T_start": "2026-05-01",
+      "T_end": "2026-05-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-05-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.1.4": {
+      "F": 0.0,
+      "T_start": "2026-06-01",
+      "T_end": "2026-06-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.1.5": {
+      "F": 0.0,
+      "T_start": "2026-07-01",
+      "T_end": "2026-07-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-07-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.1.6": {
+      "F": 0.0,
+      "T_start": "2026-08-01",
+      "T_end": "2026-08-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-08-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.1.7": {
+      "F": 0.0,
+      "T_start": "2026-11-15",
+      "T_end": "2026-11-15",
+      "T_opt": 1,
+      "T_plan_end": "2026-11-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.2": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-09-01",
+      "T_opt": 243,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.2.1": {
+      "F": 0.0,
+      "T_start": "2026-05-01",
+      "T_end": "2026-05-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-05-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.2.2": {
+      "F": 0.0,
+      "T_start": "2026-09-01",
+      "T_end": "2026-09-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.3": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-01",
+      "T_opt": 334,
+      "T_plan_end": "2026-12-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.3.1": {
+      "F": 0.0,
+      "T_start": "2026-09-01",
+      "T_end": "2026-09-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.3.2": {
+      "F": 0.0,
+      "T_start": "2026-10-01",
+      "T_end": "2026-10-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-10-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.3.3.3": {
+      "F": 0.0,
+      "T_start": "2026-12-01",
+      "T_end": "2026-12-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4": {
+      "F": 1370000.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 1370000.0,
+          "req_total": 1370000.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 340000.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.1": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-03-10",
+      "T_opt": 68,
+      "T_plan_end": "2026-03-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.1.1": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-03-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.1.2": {
+      "F": 0.0,
+      "T_start": "2026-03-10",
+      "T_end": "2026-03-10",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-10",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.2": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-06-19",
+      "T_opt": 169,
+      "T_plan_end": "2026-06-19",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.2.1": {
+      "F": 0.0,
+      "T_start": "2026-03-31",
+      "T_end": "2026-03-31",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-31",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.2.2": {
+      "F": 0.0,
+      "T_start": "2026-06-19",
+      "T_end": "2026-06-19",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-19",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.3": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-06-11",
+      "T_opt": 161,
+      "T_plan_end": "2026-06-11",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.3.1": {
+      "F": 0.0,
+      "T_start": "2026-03-15",
+      "T_end": "2026-03-15",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.3.2": {
+      "F": 0.0,
+      "T_start": "2026-04-20",
+      "T_end": "2026-04-20",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.3.3": {
+      "F": 0.0,
+      "T_start": "2026-06-11",
+      "T_end": "2026-06-11",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-11",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.3.4": {
+      "F": 0.0,
+      "T_start": "2026-06-11",
+      "T_end": "2026-06-11",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-11",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.4": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.4.1": {
+      "F": 0.0,
+      "T_start": "2026-03-01",
+      "T_end": "2026-03-01",
+      "T_opt": 1,
+      "T_plan_end": "2026-03-01",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.4.2": {
+      "F": 0.0,
+      "T_start": "2026-12-20",
+      "T_end": "2026-12-20",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.5": {
+      "F": 1370000.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 1370000.0,
+          "req_total": 1370000.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 340000.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.5.1": {
+      "F": 0.0,
+      "T_start": "2026-04-14",
+      "T_end": "2026-04-14",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-14",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.5.2": {
+      "F": 710602.0386493948,
+      "T_start": "2026-07-31",
+      "T_end": "2026-07-31",
+      "T_opt": 1,
+      "T_plan_end": "2026-07-31",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 1370000.0,
+          "req_total": 1370000.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.5.3": {
+      "F": 659397.9613506051,
+      "T_start": "2026-09-30",
+      "T_end": "2026-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-30",
+      "finances": {
+        "2026": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        },
+        "2027": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 340000.0
+        },
+        "2028": {
+          "base": 0.0,
+          "req_extra": 0.0,
+          "req_total": 0.0,
+          "add": 0.0
+        }
+      },
+      "is_financial": true,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.5.4": {
+      "F": 0.0,
+      "T_start": "2026-11-30",
+      "T_end": "2026-11-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-11-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.4.5.5": {
+      "F": 0.0,
+      "T_start": "2026-12-20",
+      "T_end": "2026-12-20",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.1": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.1.1": {
+      "F": 0.0,
+      "T_start": "2026-04-14",
+      "T_end": "2026-04-14",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-14",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.1.2": {
+      "F": 0.0,
+      "T_start": "2026-06-30",
+      "T_end": "2026-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.1.3": {
+      "F": 0.0,
+      "T_start": "2026-09-30",
+      "T_end": "2026-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.1.4": {
+      "F": 0.0,
+      "T_start": "2026-12-20",
+      "T_end": "2026-12-20",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.2": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-12-20",
+      "T_opt": 353,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.2.1": {
+      "F": 0.0,
+      "T_start": "2026-04-14",
+      "T_end": "2026-04-14",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-14",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.2.2": {
+      "F": 0.0,
+      "T_start": "2026-06-30",
+      "T_end": "2026-06-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-06-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.2.3": {
+      "F": 0.0,
+      "T_start": "2026-09-30",
+      "T_end": "2026-09-30",
+      "T_opt": 1,
+      "T_plan_end": "2026-09-30",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.2.4": {
+      "F": 0.0,
+      "T_start": "2026-12-20",
+      "T_end": "2026-12-20",
+      "T_opt": 1,
+      "T_plan_end": "2026-12-20",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.3": {
+      "F": 0.0,
+      "T_start": "2026-01-01",
+      "T_end": "2026-04-15",
+      "T_opt": 104,
+      "T_plan_end": "2026-04-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    },
+    "5.5.3.1": {
+      "F": 0.0,
+      "T_start": "2026-04-15",
+      "T_end": "2026-04-15",
+      "T_opt": 1,
+      "T_plan_end": "2026-04-15",
+      "finances": {},
+      "is_financial": false,
+      "rho_req": 1.0,
+      "rho_add": 0.0
+    }
+  },
+  "kpis": {
+    "KPI_b6e91757": {
+      "periods": "[{\"year\": 2026, \"q\": 1, \"plan\": 10.0, \"forecast\": 10.0, \"fact\": 12.1, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 2, \"plan\": 12.0, \"forecast\": 12.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 3, \"plan\": 12.8003, \"forecast\": 12.8003, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 4, \"plan\": 14.7696, \"forecast\": 14.7696, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 1, \"plan\": 9.8464, \"forecast\": 9.8464, \"fact\": 12.1, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 2, \"plan\": 11.8156, \"forecast\": 11.8156, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 3, \"plan\": 12.8003, \"forecast\": 12.8003, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 4, \"plan\": 14.7696, \"forecast\": 14.7696, \"fact\": 0.0, \"deviation\": -0.4763, \"changed\": true}, {\"year\": 2028, \"q\": 1, \"plan\": 9.8464, \"forecast\": 9.8464, \"fact\": 12.1, \"deviation\": -0.3175, \"changed\": true}, {\"year\": 2028, \"q\": 2, \"plan\": 11.8156, \"forecast\": 11.8156, \"fact\": 0.0, \"deviation\": -0.3811, \"changed\": true}, {\"year\": 2028, \"q\": 3, \"plan\": 12.8003, \"forecast\": 12.8003, \"fact\": 0.0, \"deviation\": -0.4128, \"changed\": true}, {\"year\": 2028, \"q\": 4, \"plan\": 14.7787, \"forecast\": 14.7787, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 1, \"plan\": 9.8525, \"forecast\": 9.8525, \"fact\": 12.1, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 2, \"plan\": 11.823, \"forecast\": 11.823, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 3, \"plan\": 12.8082, \"forecast\": 12.8082, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 4, \"plan\": 14.7787, \"forecast\": 14.7787, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 1, \"plan\": 9.8525, \"forecast\": 9.8525, \"fact\": 12.1, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 2, \"plan\": 11.823, \"forecast\": 11.823, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 3, \"plan\": 12.8082, \"forecast\": 12.8082, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 4, \"plan\": 14.7787, \"forecast\": 14.7787, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}]",
+      "annual": "{\"2026\": {\"plan\": 14.7696, \"forecast\": 14.7696, \"fact\": 0.0}, \"2027\": {\"plan\": 14.7696, \"forecast\": 14.7696, \"fact\": 0.0}, \"2028\": {\"plan\": 14.7787, \"forecast\": 14.7787, \"fact\": 0.0}, \"2029\": {\"plan\": 14.7787, \"forecast\": 14.7787, \"fact\": 0.0}, \"2030\": {\"plan\": 14.7787, \"forecast\": 14.7787, \"fact\": 0.0}}",
+      "Q1": 10.0,
+      "Q2": 12.0,
+      "Q3": 12.8003,
+      "Q4": 14.7696,
+      "Year": 14.7696
+    },
+    "KPI_4cee8428": {
+      "periods": "[{\"year\": 2026, \"q\": 1, \"plan\": 72.0, \"forecast\": 72.0, \"fact\": 72.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 2, \"plan\": 75.0, \"forecast\": 75.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 3, \"plan\": 77.0, \"forecast\": 77.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 4, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 1, \"plan\": 72.0, \"forecast\": 72.0, \"fact\": 72.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 2, \"plan\": 75.0, \"forecast\": 75.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 3, \"plan\": 77.0, \"forecast\": 77.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 4, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 1, \"plan\": 72.0, \"forecast\": 72.0, \"fact\": 72.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 2, \"plan\": 75.0, \"forecast\": 75.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 3, \"plan\": 77.0, \"forecast\": 77.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 4, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 1, \"plan\": 72.0, \"forecast\": 72.0, \"fact\": 72.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 2, \"plan\": 75.0, \"forecast\": 75.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 3, \"plan\": 77.0, \"forecast\": 77.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 4, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 1, \"plan\": 72.0, \"forecast\": 72.0, \"fact\": 72.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 2, \"plan\": 75.0, \"forecast\": 75.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 3, \"plan\": 77.0, \"forecast\": 77.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 4, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}]",
+      "annual": "{\"2026\": {\"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0}, \"2027\": {\"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0}, \"2028\": {\"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0}, \"2029\": {\"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0}, \"2030\": {\"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0}}",
+      "Q1": 72.0,
+      "Q2": 75.0,
+      "Q3": 77.0,
+      "Q4": 80.0,
+      "Year": 80.0
+    },
+    "KPI_7e2b71b4": {
+      "periods": "[{\"year\": 2026, \"q\": 1, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 20.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 2, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 3, \"plan\": 40.0, \"forecast\": 40.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 1, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 20.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 2, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 3, \"plan\": 40.0, \"forecast\": 40.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 1, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 20.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 2, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 3, \"plan\": 40.0, \"forecast\": 40.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 1, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 20.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 2, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 3, \"plan\": 40.0, \"forecast\": 40.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 1, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 20.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 2, \"plan\": 20.0, \"forecast\": 20.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 3, \"plan\": 40.0, \"forecast\": 40.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}]",
+      "annual": "{\"2026\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2027\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2028\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2029\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2030\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}}",
+      "Q1": 20.0,
+      "Q2": 20.0,
+      "Q3": 40.0,
+      "Q4": 100.0,
+      "Year": 100.0
+    },
+    "KPI_2feed607": {
+      "periods": "[{\"year\": 2026, \"q\": 1, \"plan\": 86.0, \"forecast\": 86.0, \"fact\": 86.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 2, \"plan\": 90.0, \"forecast\": 90.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 3, \"plan\": 95.0, \"forecast\": 95.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 1, \"plan\": 86.0, \"forecast\": 86.0, \"fact\": 86.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 2, \"plan\": 90.0, \"forecast\": 90.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 3, \"plan\": 95.0, \"forecast\": 95.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 1, \"plan\": 86.0, \"forecast\": 86.0, \"fact\": 86.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 2, \"plan\": 90.0, \"forecast\": 90.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 3, \"plan\": 95.0, \"forecast\": 95.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 1, \"plan\": 86.0, \"forecast\": 86.0, \"fact\": 86.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 2, \"plan\": 90.0, \"forecast\": 90.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 3, \"plan\": 95.0, \"forecast\": 95.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 1, \"plan\": 86.0, \"forecast\": 86.0, \"fact\": 86.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 2, \"plan\": 90.0, \"forecast\": 90.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 3, \"plan\": 95.0, \"forecast\": 95.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}]",
+      "annual": "{\"2026\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2027\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2028\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2029\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2030\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}}",
+      "Q1": 86.0,
+      "Q2": 90.0,
+      "Q3": 95.0,
+      "Q4": 100.0,
+      "Year": 100.0
+    },
+    "KPI_2985dc47": {
+      "periods": "[{\"year\": 2026, \"q\": 1, \"plan\": 22.0, \"forecast\": 22.0, \"fact\": 22.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 2, \"plan\": 60.0, \"forecast\": 60.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 3, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 1, \"plan\": 22.0, \"forecast\": 22.0, \"fact\": 22.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 2, \"plan\": 60.0, \"forecast\": 60.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 3, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 1, \"plan\": 22.0, \"forecast\": 22.0, \"fact\": 22.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 2, \"plan\": 60.0, \"forecast\": 60.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 3, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 1, \"plan\": 22.0, \"forecast\": 22.0, \"fact\": 22.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 2, \"plan\": 60.0, \"forecast\": 60.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 3, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 1, \"plan\": 22.0, \"forecast\": 22.0, \"fact\": 22.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 2, \"plan\": 60.0, \"forecast\": 60.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 3, \"plan\": 80.0, \"forecast\": 80.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 4, \"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}]",
+      "annual": "{\"2026\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2027\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2028\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2029\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}, \"2030\": {\"plan\": 100.0, \"forecast\": 100.0, \"fact\": 0.0}}",
+      "Q1": 22.0,
+      "Q2": 60.0,
+      "Q3": 80.0,
+      "Q4": 100.0,
+      "Year": 100.0
+    },
+    "KPI_73784c57": {
+      "periods": "[{\"year\": 2026, \"q\": 1, \"plan\": 36.0, \"forecast\": 36.0, \"fact\": 35.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 2, \"plan\": 34.0, \"forecast\": 34.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 3, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2026, \"q\": 4, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 1, \"plan\": 36.0, \"forecast\": 36.0, \"fact\": 35.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 2, \"plan\": 34.0, \"forecast\": 34.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 3, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2027, \"q\": 4, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 1, \"plan\": 36.0, \"forecast\": 36.0, \"fact\": 35.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 2, \"plan\": 34.0, \"forecast\": 34.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 3, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2028, \"q\": 4, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 1, \"plan\": 36.0, \"forecast\": 36.0, \"fact\": 35.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 2, \"plan\": 34.0, \"forecast\": 34.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 3, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2029, \"q\": 4, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 1, \"plan\": 36.0, \"forecast\": 36.0, \"fact\": 35.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 2, \"plan\": 34.0, \"forecast\": 34.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 3, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}, {\"year\": 2030, \"q\": 4, \"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0, \"deviation\": 0.0, \"changed\": false}]",
+      "annual": "{\"2026\": {\"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0}, \"2027\": {\"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0}, \"2028\": {\"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0}, \"2029\": {\"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0}, \"2030\": {\"plan\": 32.0, \"forecast\": 32.0, \"fact\": 0.0}}",
+      "Q1": 36.0,
+      "Q2": 34.0,
+      "Q3": 32.0,
+      "Q4": 32.0,
+      "Year": 32.0
+    }
+  },
+  "saved_at": "2026-07-13T17:36:49"
+}
