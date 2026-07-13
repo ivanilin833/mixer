@@ -43,6 +43,8 @@ from datetime import datetime, timedelta
 import mixer_core as mc
 from mixer_core import ProjectMixer, LocalLLMEngine, DataLoaderOrchestrator, MixerConfig, RELATION_LABELS, parse_ru_number
 import project_store as ps
+import midi_sync
+import uuid
 
 # ======================================================================
 # КОНФИГУРАЦИЯ
@@ -53,24 +55,20 @@ st.set_page_config(
     layout="wide",
 )
 
-# 1. НЕСГОРАЕМАЯ ПАМЯТЬ ПУЛЬТА (переживает rerun'ы Streamlit)
+# ======================================================================
+# ПУЛЬТ M-Vave — транспорт MIDI (модуль midi_sync). Транспорт-состояние живёт в
+# @st.cache_resource (переживает rerun'ы и общее на процесс); слушатель только читает
+# железо и КЛАДЁТ нормализованные события в очередь, а применяет их к слайдерам ровно
+# одна вкладка-владелец (аренда consumer). Явное «обучение» каналов, выбор диалекта
+# энкодера и soft-takeover реализованы в midi_sync.
+# ======================================================================
 @st.cache_resource
-def get_midi_state():
-    return {
-        'mapping': [],      # Список привязанных сигналов
-        'cc_modes': {},     # Тип ручки: 'relative' или 'absolute'
-        'base': 100, 'req': 100, 'add': 0,
-        'shift': 0, 'dur': 100,
-        'trans_req': 0, 'trans_add': 0, # Освободили каналы 7 и 8 под перенос средств
-        'updated': False,
-        'revision': 0,      # монотонный счётчик изменений
-        'port': None,       # имя подключённого порта
-        'events': [],       # последние события MIDI (до 50 шт.)
-    }
+def get_transport():
+    return midi_sync.create_transport_state()
 
 
 def _midi_log(msg: str):
-    """Печать из фонового потока, безопасная для Windows-консоли (cp1251) и frozen-режима."""
+    """Печать из фонового потока (безопасна для cp1251/frozen) + журнал в транспорт."""
     try:
         print(msg)
     except Exception:
@@ -78,109 +76,97 @@ def _midi_log(msg: str):
             print(str(msg).encode('ascii', 'replace').decode())
         except Exception:
             pass
-    # Также сохраняем событие в midi_state для UI
     try:
-        midi_state = get_midi_state()
-        evts = midi_state.get('events', [])
-        evts.append(msg)
-        midi_state['events'] = evts[-50:]  # максимум 50 последних событий
+        midi_sync.append_log(get_transport(), str(msg))
     except Exception:
         pass
 
 
+def _midi_session_owner() -> str:
+    """Стабильный идентификатор ЭТОЙ вкладки-браузера (для аренды единственного потребителя
+    очереди: иначе две вкладки воруют события друг у друга и слайдеры «дёргаются»)."""
+    if "_midi_owner" not in st.session_state:
+        st.session_state["_midi_owner"] = uuid.uuid4().hex
+    return st.session_state["_midi_owner"]
+
+
 @st.cache_resource
 def start_midi_listener():
+    """Фоновый слушатель железа: находит порт (или использует выбранный), нормализует каждое
+    сообщение через midi_sync.record_midi_message и кладёт в очередь. Никакого применения к
+    UI — это делает вкладка-владелец в реальном времени во фрагменте пульта."""
     if not MIDI_AVAILABLE:
         return None
+    state = get_transport()
 
-    midi_state = get_midi_state()
-
-    # Каналы пульта: (ключ, min, max, шаг чувствительности)
-    CHANNELS = [
-        ('base', 0, 100, 1),
-        ('req', 0, 100, 1),
-        ('add', 0, 100, 1),
-        ('shift', -12, 24, 1),
-        ('trans_req', 0, 100, 1), # Канал 7: Перенос потребности -> Базу (%)
-        ('trans_add', 0, 100, 1), # Канал 8: Перенос доп. потребности -> Базу (%)
-    ]
-
-    def _find_port():
-        try:
-            ports = mido.get_input_names()
-        except Exception:
-            return None
-        name = next((p for p in ports if 'SMC' in p or 'Vave' in p), None)
-        if not name:
-            name = next((p for p in ports if 'MIDI' in p), None)
-        if not name and ports:
-            name = ports[0]
-        return name
+    def _pick_port(ports, preferred):
+        if preferred and preferred in ports:
+            return preferred
+        return (next((p for p in ports if 'SMC' in p or 'Vave' in p), None)
+                or next((p for p in ports if 'MIDI' in p), None)
+                or (ports[0] if ports else None))
 
     def midi_loop():
         import time
         while True:
-            port_name = _find_port()
-            if not port_name:
-                midi_state['port'] = None
-                time.sleep(3.0)
+            try:
+                ports = list(mido.get_input_names())
+            except Exception:
+                ports = []
+            midi_sync.set_available_ports(state, ports)
+            snap = midi_sync.transport_snapshot(state)
+            name = _pick_port(ports, snap.get('preferred_port'))
+            if not name:
+                with state["lock"]:
+                    state["port"] = None
+                time.sleep(2.0)
                 continue
             try:
-                _midi_log(f"✅ Подключен MIDI-пульт: {port_name}")
-                midi_state['port'] = port_name
-                with mido.open_input(port_name) as inport:
+                _midi_log(f"✅ Подключён MIDI-пульт: {name}")
+                with mido.open_input(name) as inport:
+                    with state["lock"]:
+                        state["port"] = name
+                        state["input_port"] = inport
                     for msg in inport:
-                        val = None
-                        sig_id = None
-
+                        if midi_sync.transport_snapshot(state).get("reconnect_requested"):
+                            midi_sync.clear_reconnect_request(state)
+                            break
                         if msg.type == 'control_change':
-                            val = msg.value
-                            sig_id = f"cc_{msg.control}"
+                            signal, raw, mtype = f"cc_{msg.channel}_{msg.control}", msg.value, 'control_change'
                         elif msg.type == 'pitchwheel':
-                            val = int((msg.pitch + 8192) / 16383.0 * 127)
-                            sig_id = f"pw_{msg.channel}"
-
-                        if val is None or sig_id is None:
+                            signal, raw = f"pw_{msg.channel}", int((msg.pitch + 8192) / 16383.0 * 127)
+                            mtype = 'pitchwheel'
+                        else:
                             continue
-
-                        if sig_id not in midi_state['mapping']:
-                            if len(midi_state['mapping']) < len(CHANNELS):
-                                midi_state['mapping'].append(sig_id)
-                                if msg.type == 'control_change' and val in (1, 2, 3, 4, 5, 6, 7,
-                                                                            127, 126, 125, 124, 123, 122, 121,
-                                                                            65, 66, 67, 63, 62, 61):
-                                    midi_state['cc_modes'][sig_id] = 'relative'
-                                    _midi_log(f"🎓 Привязана КРУТИЛКА [{sig_id}] к каналу {len(midi_state['mapping'])}")
-                                else:
-                                    midi_state['cc_modes'][sig_id] = 'absolute'
-                                    _midi_log(f"🎓 Привязан ФЕЙДЕР [{sig_id}] к каналу {len(midi_state['mapping'])}")
-
-                        if sig_id in midi_state['mapping']:
-                            idx = midi_state['mapping'].index(sig_id)
-                            key, min_v, max_v, step = CHANNELS[idx]
-                            mode = midi_state['cc_modes'].get(sig_id, 'absolute')
-
-                            if mode == 'relative':
-                                delta = 0
-                                if val in (1, 2, 3, 4, 5, 6, 7, 8): delta = val
-                                elif val in (127, 126, 125, 124, 123, 122, 121, 120): delta = val - 128
-                                elif val in (65, 66, 67, 68, 69): delta = val - 64
-                                elif val in (63, 62, 61, 60, 59): delta = val - 64
-                                new_v = midi_state[key] + (delta * step)
-                            else:
-                                new_v = min_v + (val / 127.0) * (max_v - min_v)
-
-                            midi_state[key] = max(min_v, min(max_v, int(new_v)))
-                            midi_state['updated'] = True
-                            midi_state['revision'] = midi_state.get('revision', 0) + 1
+                        midi_sync.record_midi_message(state, signal=signal, raw=raw, message_type=mtype)
             except Exception as e:
-                _midi_log(f"❌ Ошибка MIDI: {e} — переподключение через 3 с")
-                midi_state['port'] = None
-                time.sleep(3.0)
+                _midi_log(f"❌ Ошибка MIDI: {e} — переподключение через 2 с")
+                with state["lock"]:
+                    state["port"] = None
+                    state["input_port"] = None
+                time.sleep(2.0)
 
     t = threading.Thread(target=midi_loop, daemon=True)
     t.start()
+    with state["lock"]:
+        state["listener_thread"] = t
+        state["listener_started"] = True
     return t
+
+
+# Логическая раскладка каналов пульта → ключи слайдеров интерфейса.
+_MIDI_CHANNEL_KEYS = ('base', 'req', 'add', 'shift', 'trans_req', 'trans_add')
+
+
+def _midi_channel_slider_key(entity, channel, focus_year):
+    """Ключ session_state слайдера для канала пульта. Каналы переноса (7/8) действуют на год,
+    выбранный радио-кнопкой «фокус пульта»."""
+    if channel in ('base', 'req', 'add', 'shift'):
+        return f"ch_{channel}_{entity}"
+    if channel in ('trans_req', 'trans_add') and focus_year:
+        return f"ch_{channel}_{entity}_{focus_year}"
+    return None
+
 
 # Запускаем слушатель один раз при старте приложения
 start_midi_listener()
@@ -1226,22 +1212,43 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
     _entity_data = st.session_state[_entity_state_key]
 
     # --- 1. MIDI SYNC (REAL-TIME) ---
-    # Синхронизация состояния MIDI-пульта с сессией Streamlit.
-    # Это позволяет пульту управлять слайдерами на экране в реальном времени.
+    # Забираем нормализованные события пульта из очереди транспорта и применяем к слайдерам
+    # ЭТОЙ вкладки. События из очереди тянет ровно одна вкладка-владелец (аренда consumer):
+    # так две вкладки не воруют события друг у друга. Абсолютные фейдеры — с «подхватом»
+    # (soft-takeover): пока физический фейдер не «догонит» экранное значение, скачка нет;
+    # относительные крутилки — прибавляют дельту к текущему значению.
     if MIDI_AVAILABLE:
-        midi_state = get_midi_state()
-        revision_key = f"_midi_revision_{selected_entity}"
-        if midi_state.get('revision') != st.session_state.get(revision_key):
-            st.session_state[f"ch_base_{selected_entity}"] = midi_state['base']
-            st.session_state[f"ch_req_{selected_entity}"] = midi_state['req']
-            st.session_state[f"ch_add_{selected_entity}"] = midi_state['add']
-            st.session_state[f"ch_shift_{selected_entity}"] = midi_state['shift']
-            
+        _tr = get_transport()
+        _owner = _midi_session_owner()
+        if midi_sync.claim_consumer(_tr, _owner):
             focus_yr = st.session_state.get(f"midi_focus_year_{selected_entity}")
-            if focus_yr:
-                st.session_state[f"ch_trans_req_{selected_entity}_{focus_yr}"] = midi_state['trans_req']
-                st.session_state[f"ch_trans_add_{selected_entity}_{focus_yr}"] = midi_state['trans_add']
-            st.session_state[revision_key] = midi_state['revision']
+            _events = midi_sync.coalesce_events(midi_sync.drain_events(_tr))
+            for _ev in _events:
+                _ch = _ev.get("channel")
+                _skey = _midi_channel_slider_key(selected_entity, _ch, focus_yr)
+                if not _skey:
+                    continue
+                _spec = midi_sync.CHANNEL_BY_KEY.get(_ch)
+                if _spec is None:
+                    continue
+                _cur = safe_float(st.session_state.get(_skey, _spec.minimum), _spec.minimum)
+                if _ev.get("mode") in midi_sync._RELATIVE_MODES:
+                    _new = _cur + int(_ev.get("delta", 0)) * _spec.step
+                else:
+                    # Абсолютный фейдер. Первое движение после привязки берём напрямую (без
+                    # «мёртвой зоны»). Дальше фейдер ведёт слайдер один-в-один. Как только слайдер
+                    # подвинули мышью (внешне) — перевзводим soft-takeover: экран не прыгнет, пока
+                    # физический фейдер не «догонит» новую позицию.
+                    _pk_key = f"_midi_pickup_{_skey}"
+                    _pk = st.session_state.get(_pk_key)
+                    if _pk is None:
+                        _pk = midi_sync.new_pickup(_cur, armed=False)
+                    elif abs(_cur - safe_float(_pk.get("owned"), _cur)) > 0.5:
+                        _pk = midi_sync.new_pickup(_cur, armed=True)
+                    _new, _pk, _ = midi_sync.apply_absolute_with_pickup(_cur, float(_ev.get("value", _cur)), _pk)
+                    _pk["owned"] = _new
+                    st.session_state[_pk_key] = _pk
+                st.session_state[_skey] = int(midi_sync.clamp(round(_new), _spec.minimum, _spec.maximum))
 
     # --- 2. CHANNELS 1-4 (MAIN CONSOLE) ---
     st.markdown('<div class="mx-console-h">🎛️ M-Vave Console (Основные каналы 1-4)</div>', unsafe_allow_html=True)
@@ -1254,10 +1261,8 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
             if unique_key not in st.session_state:
                 st.session_state[unique_key] = max(min_v, min(max_v, def_v))
             val = st.slider(label, min_value=min_v, max_value=max_v, step=step, key=unique_key, label_visibility="collapsed")
-            if MIDI_AVAILABLE:
-                midi_key = val_key.replace("ch_", "")
-                if midi_key in get_midi_state() and get_midi_state()[midi_key] != val:
-                    get_midi_state()[midi_key] = val
+            # Обратная запись slider→midi_state больше не нужна: слайдер — источник истины экрана,
+            # а события пульта применяются к нему выше (с подхватом для абсолютных фейдеров).
             st.markdown(f'<div class="ch-val">{fmt_str.format(val)}{unit}</div></div>', unsafe_allow_html=True)
             return val
 
@@ -1646,61 +1651,109 @@ def realtime_console_fragment(selected_entity, node, engine, def_rho_req, def_rh
     m1.metric("Итог. Реальный бюджет (дисконт.)", fmt(total_feff))
     m2.metric("Дедлайн", new_end.strftime("%d.%m.%Y"))
     
+_MIDI_MODE_LABELS = {
+    "auto": "авто",
+    "absolute": "фейдер (абсолютный)",
+    "relative_twos": "крутилка · two’s complement",
+    "relative_binary": "крутилка · offset (64=центр)",
+    "relative_mackie": "крутилка · Mackie/MCU",
+    "relative_legacy": "крутилка · legacy",
+}
+
+
 def render_midi_setup_panel():
-    """Панель настройки MIDI-пульта в sidebar: статус, привязки каналов, журнал событий."""
+    """Панель настройки пульта: порт, привязка каналов (явное обучение), диалект энкодера,
+    журнал. Использует транспорт midi_sync (см. верх файла)."""
     if not MIDI_AVAILABLE:
         st.info("🎛️ MIDI-пульт не установлен — управление с экрана.")
         return
 
-    midi_state = get_midi_state()
-    port = midi_state.get('port')
-    mapping = midi_state.get('mapping', [])
-    events = midi_state.get('events', [])
+    state = get_transport()
+    owner = _midi_session_owner()
+    snap = midi_sync.transport_snapshot(state)
 
     with st.expander("🎛️ MIDI-пульт", expanded=True):
-        # Статус подключения
+        port = snap.get("port")
         if port:
             st.success(f"🟢 Подключён: {port}")
         else:
-            st.warning("🔴 Пульт не обнаружен — переподключение через 3 сек…")
+            st.warning("🔴 Пульт не обнаружен — идёт поиск…")
+        if snap.get("consumer_owner") and not midi_sync.consumer_is_owner(state, owner):
+            st.caption("⚠️ Пультом сейчас управляет другая вкладка — события применяются там.")
 
-        # Таблица каналов
-       # Обновленные списки без 5 канала
-        channel_names = ["1: БАЗА", "2: ПОТРЕБ", "3: ДОП", "4: СДВИГ", "5: ТР.ПОТРЕБ", "6: ТР.ДОП"]
-        ch_keys = ['base', 'req', 'add', 'shift', 'trans_req', 'trans_add']
-        ch_min = [0, 0, 0, -12, 0, 0]
-        ch_max = [100, 100, 0, 24, 100, 100]
+        # Выбор порта (стабильный: не «прыгает» при появлении новых устройств)
+        ports = list(snap.get("available_ports") or [])
+        if ports:
+            opts = ["(авто)"] + ports
+            cur = snap.get("preferred_port") or "(авто)"
+            pick = st.selectbox("Порт", opts, index=(opts.index(cur) if cur in opts else 0),
+                                key="_midi_port_pick")
+            new_pref = None if pick == "(авто)" else pick
+            if new_pref != (snap.get("preferred_port") or None):
+                midi_sync.set_preferred_port(state, new_pref)
+                st.rerun()
 
-        st.markdown("**Каналы пульта:**")
-        for i in range(6): # <--- Было 7, стало 6
-            with st.container():
-                cc1, cc2, cc3 = st.columns([2, 2, 1])
-                key = ch_keys[i]
-                val = midi_state.get(key, ch_min[i])
-                bound = mapping[i] if i < len(mapping) else "— привязан"
-                with cc1:
-                    st.markdown(f"**{channel_names[i]}**")
-                with cc2:
-                    st.caption(f"Сигнал: `{bound}` · Значение: {val}")
-                with cc3:
-                    if st.button("🔄", key=f"unbind_{i}", use_container_width=True):
-                        if i < len(mapping):
-                            del mapping[i]
-                            midi_state['mapping'] = mapping
-                            st.rerun()
+        auto = st.toggle("Авто-привязка по порядку", value=bool(snap.get("auto_bind")),
+                         key="_midi_autobind",
+                         help="Первые движения контролов займут слоты 1→8 по очереди. Иначе "
+                              "привязывайте каждый канал вручную кнопкой «Учить».")
+        if auto != bool(snap.get("auto_bind")):
+            midi_sync.set_auto_bind(state, auto)
+            st.rerun()
 
-        # Журнал событий
+        bindings = list(snap.get("bindings") or [])
+        overrides = dict(snap.get("mode_overrides") or {})
+        cc_modes = dict(snap.get("cc_modes") or {})
+        last_ev = dict(snap.get("last_channel_event") or {})
+        learn_slot = snap.get("learn_slot")
+
+        st.markdown("**Каналы:**")
+        for i, spec in enumerate(midi_sync.CHANNELS):
+            sig = bindings[i] if i < len(bindings) else None
+            c1, c2, c3 = st.columns([3, 1, 1])
+            with c1:
+                st.markdown(f"**{spec.label}**")
+                if learn_slot == i:
+                    st.caption("🎓 подвигайте нужный фейдер/крутилку…")
+                elif sig:
+                    ev = last_ev.get(spec.key, {})
+                    v = ev.get("value", ev.get("delta"))
+                    tail = f" · {v}" if v is not None else ""
+                    st.caption(f"`{sig}` · {_MIDI_MODE_LABELS.get(cc_modes.get(sig, 'auto'), cc_modes.get(sig, '?'))}{tail}")
+                else:
+                    st.caption("— не привязан")
+            with c2:
+                if st.button("Учить", key=f"_midi_learn_{i}", use_container_width=True):
+                    midi_sync.begin_learn(state, i)
+                    st.rerun()
+            with c3:
+                if sig and st.button("✕", key=f"_midi_unbind_{i}", use_container_width=True):
+                    midi_sync.unbind_channel(state, i)
+                    st.rerun()
+            if sig:
+                cur_mode = overrides.get(sig, "auto")
+                keys = list(_MIDI_MODE_LABELS.keys())
+                pick_mode = st.selectbox(
+                    "тип", keys, index=(keys.index(cur_mode) if cur_mode in keys else 0),
+                    format_func=lambda k: _MIDI_MODE_LABELS[k],
+                    key=f"_midi_mode_{i}", label_visibility="collapsed")
+                if pick_mode != cur_mode:
+                    midi_sync.set_mode_override(state, sig, pick_mode)
+                    st.rerun()
+
+        events = snap.get("events") or []
         if events:
             with st.expander("📋 Журнал событий", expanded=False):
-                for ev in events[-10:]:
+                for ev in events[-12:]:
                     st.caption(ev)
 
-        # Кнопка сброса
-        if mapping:
-            if st.button("🗑 Забыть все привязки", use_container_width=True):
-                midi_state['mapping'] = []
-                midi_state['cc_modes'] = {}
-                st.rerun()
+        b1, b2 = st.columns(2)
+        if b1.button("🗑 Забыть привязки", use_container_width=True):
+            midi_sync.clear_bindings(state)
+            st.rerun()
+        if learn_slot is not None and b2.button("Отмена обучения", use_container_width=True):
+            midi_sync.cancel_learn(state)
+            st.rerun()
 
 
 
@@ -2617,7 +2670,6 @@ def page_mixer():
                         # «запекаем» текущие показанные суммы в _orig_* и сбрасываем ползунки
                         # переноса этого года в 0. Так перенос (Каналы 7/8) считается АБСОЛЮТНО от
                         # свежего базиса, а не накапливается — База больше не уходит в минус.
-                        midi_s = get_midi_state()
                         editor_key = f"fin_editor_{selected_entity}_{st.session_state.table_nonce}"
                         edits = st.session_state[editor_key].get("edited_rows", {})
 
@@ -2635,12 +2687,12 @@ def page_mixer():
                             row["_orig_base"] = safe_float(row.get("База"))
                             row["_orig_req"] = safe_float(row.get("Потребность"))
                             row["_orig_add"] = safe_float(row.get("Доп. потребность"))
-                            # Перенос сброшен: цифры уже отражают то, что ввёл пользователь.
+                            # Перенос сброшен: цифры уже отражают то, что ввёл пользователь. Перевзводим
+                            # подхват абсолютных фейдеров переноса (иначе железо «догоняло» бы старое).
                             st.session_state[f"ch_trans_req_{selected_entity}_{y_str}"] = 0
                             st.session_state[f"ch_trans_add_{selected_entity}_{y_str}"] = 0
-                            if MIDI_AVAILABLE:
-                                midi_s['trans_req'] = 0
-                                midi_s['trans_add'] = 0
+                            st.session_state.pop(f"_midi_pickup_ch_trans_req_{selected_entity}_{y_str}", None)
+                            st.session_state.pop(f"_midi_pickup_ch_trans_add_{selected_entity}_{y_str}", None)
 
                     edited_fin = st.data_editor(
                         df_fin,
